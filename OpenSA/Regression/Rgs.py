@@ -9,11 +9,22 @@
 
 """
 
-from Regression.ClassicRgs import Pls, Anngression, Svregression, ELM
-from Regression.CNN import CNNTrain
+"""
+    这段代码主要实现了一个函数 QuantitativeAnalysis，这个函数
+    根据传入的 model 参数来进行定量分析。model 可以是 "Pls"，"ANN"，
+    "SVR"，"ELM" 或 "CNN"。如果 model 是 "Pls"，就调用 Pls 函数进
+    行 PLS 回归分析，如果是 "ANN"，就调用 Anngression 函数进行人工神
+    经网络分析，如果是 "SVR"，就调用 Svregression 函数进行支持向量回
+    归分析，如果是"ELM"，就调用 ELM 函数进行极限学习机回归分析，如果是 
+    "CNN"，就调用 CNNTrain 函数进行卷积神经网络分析。每种分析方法都返回
+    三个结果，分别是均方根误差（Rmse），决定系数（R2）和平均绝对误差（Mae）。
+"""
 
-def  QuantitativeAnalysis(model, X_train, X_test, y_train, y_test):
+from OpenSA.Regression.ClassicRgs import Pls, Anngression, Svregression, ELM
+from OpenSA.Regression.CNN import CNNTrain
 
+
+def QuantitativeAnalysis(model, X_train, X_test, y_train, y_test):
     if model == "Pls":
         Rmse, R2, Mae = Pls(X_train, X_test, y_train, y_test)
     elif model == "ANN":
@@ -23,8 +34,8 @@ def  QuantitativeAnalysis(model, X_train, X_test, y_train, y_test):
     elif model == "ELM":
         Rmse, R2, Mae = ELM(X_train, X_test, y_train, y_test)
     elif model == "CNN":
-        Rmse, R2, Mae = CNNTrain("AlexNet",X_train, X_test, y_train, y_test,  150)
+        Rmse, R2, Mae = CNNTrain("AlexNet", X_train, X_test, y_train, y_test, 150)
     else:
         print("no this model of QuantitativeAnalysis")
 
-    return Rmse, R2, Mae 
+    return Rmse, R2, Mae

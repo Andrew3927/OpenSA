@@ -7,6 +7,14 @@ import random
 from sklearn import model_selection
 from sklearn.cross_decomposition import PLSRegression
 
+"""
+    这段代码主要实现了一个名为GA的函数，它使用遗传算法来选择光谱数据中最
+    重要的变量，并使用PLS回归模型来预测化学值。遗传算法的基本流程包括：
+    初始化种群，评估个体适应度，选择个体，交叉变换和变异。使用交叉验证来
+    评估模型的性能。最终，返回选择出来的变量和最佳模型。
+"""
+
+
 creator.create('FitnessMax', base.Fitness, weights=(1.0,))  # for minimization, set weights as (-1.0,)
 creator.create('Individual', list, fitness=creator.FitnessMax)
 

@@ -9,6 +9,19 @@
 
 """
 
+"""
+    这段代码主要实现了三个函数，分别是：
+
+        1. PC_Cross_Validation，它实现了用交叉验证法评估光谱数据和
+        浓度阵（化学值）之间的关系，并返回各主成分数对应的RMSECV和PRESS，
+        以及最佳主成分数。
+    
+        2. Cross_Validation，它也实现了用交叉验证法评估光谱数据和浓度阵之
+        间的关系，并返回各主成分数对应的RMSECV。
+    
+        3. CARS_Cloud，它实现了一种关于光谱数据和浓度阵的建模方法，并返回结果。
+"""
+
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib import font_manager as fm, rcParams
@@ -17,10 +30,11 @@ from sklearn.model_selection import KFold
 from sklearn.metrics import mean_squared_error
 import copy
 
+
 # ref: https://blog.csdn.net/qq2512446791
 
 def PC_Cross_Validation(X, y, pc, cv):
-    '''
+    """
         x :光谱矩阵 nxm
         y :浓度阵 （化学值）
         pc:最大主成分数
@@ -29,7 +43,7 @@ def PC_Cross_Validation(X, y, pc, cv):
         RMSECV:各主成分数对应的RMSECV
         PRESS :各主成分数对应的PRESS
         rindex:最佳主成分数
-    '''
+    """
     kf = KFold(n_splits=cv)
     RMSECV = []
     for i in range(pc):
@@ -45,6 +59,7 @@ def PC_Cross_Validation(X, y, pc, cv):
         RMSECV.append(RMSE_mean)
     rindex = np.argmin(RMSECV)
     return RMSECV, rindex
+
 
 def Cross_Validation(X, y, pc, cv):
     '''
@@ -67,11 +82,12 @@ def Cross_Validation(X, y, pc, cv):
     RMSE_mean = np.mean(RMSE)
     return RMSE_mean
 
+
 def CARS_Cloud(X, y, N=50, f=20, cv=10):
     p = 0.8
     m, n = X.shape
-    u = np.power((n/2), (1/(N-1)))
-    k = (1/(N-1)) * np.log(n/2)
+    u = np.power((n / 2), (1 / (N - 1)))
+    k = (1 / (N - 1)) * np.log(n / 2)
     cal_num = np.round(m * p)
     # val_num = m - cal_num
     b2 = np.arange(n)
@@ -79,29 +95,29 @@ def CARS_Cloud(X, y, N=50, f=20, cv=10):
     D = np.vstack((np.array(b2).reshape(1, -1), X))
     WaveData = []
     # Coeff = []
-    WaveNum =[]
+    WaveNum = []
     RMSECV = []
     r = []
-    for i in range(1, N+1):
-        r.append(u*np.exp(-1*k*i))
-        wave_num = int(np.round(r[i-1]*n))
+    for i in range(1, N + 1):
+        r.append(u * np.exp(-1 * k * i))
+        wave_num = int(np.round(r[i - 1] * n))
         WaveNum = np.hstack((WaveNum, wave_num))
-        cal_index = np.random.choice    \
+        cal_index = np.random.choice \
             (np.arange(m), size=int(cal_num), replace=False)
         wave_index = b2[:wave_num].reshape(1, -1)[0]
         xcal = x[np.ix_(list(cal_index), list(wave_index))]
-        #xcal = xcal[:,wave_index].reshape(-1,wave_num)
+        # xcal = xcal[:,wave_index].reshape(-1,wave_num)
         ycal = y[cal_index]
         x = x[:, wave_index]
         D = D[:, wave_index]
-        d = D[0, :].reshape(1,-1)
+        d = D[0, :].reshape(1, -1)
         wnum = n - wave_num
         if wnum > 0:
             d = np.hstack((d, np.full((1, wnum), -1)))
         if len(WaveData) == 0:
             WaveData = d
         else:
-            WaveData  = np.vstack((WaveData, d.reshape(1, -1)))
+            WaveData = np.vstack((WaveData, d.reshape(1, -1)))
 
         if wave_num < f:
             f = wave_num
@@ -114,7 +130,7 @@ def CARS_Cloud(X, y, N=50, f=20, cv=10):
         coef = copy.deepcopy(beta)
         coeff = coef[b2, :].reshape(len(b2), -1)
         rmsecv, rindex = PC_Cross_Validation(xcal, ycal, f, cv)
-        RMSECV.append(Cross_Validation(xcal, ycal, rindex+1, cv))
+        RMSECV.append(Cross_Validation(xcal, ycal, rindex + 1, cv))
 
     WAVE = []
 
@@ -136,11 +152,9 @@ def CARS_Cloud(X, y, N=50, f=20, cv=10):
         else:
             WAVE = np.vstack((WAVE, WD.reshape(1, -1)))
 
-
     MinIndex = np.argmin(RMSECV)
     Optimal = WAVE[MinIndex, :]
     boindex = np.where(Optimal != 0)
     OptWave = boindex[0]
-
 
     return OptWave

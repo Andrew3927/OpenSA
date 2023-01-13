@@ -9,42 +9,50 @@
 
 """
 
+"""
+    这个代码实现了一个基于pytorch的卷积神经网络模型，用于分类任务。代码中
+    导入了许多pytorch和numpy的库，并利用这些库进行了数据预处理，模型训练
+    和评估等步骤。其中，自定义了一个"MyDataset"类来加载自己的数据集，并设
+    置了一个"ZspPocess"函数来进行标准化处理，还定义了一个"CNN3Lyaers"类
+    来构建一个3层的卷积神经网络。
+"""
+
 import torch.nn.functional as F
 import numpy as np
 import torch
 import torch.nn as nn
 from torch.autograd import Variable
 from torch.utils.data import Dataset
-from sklearn.metrics import accuracy_score,auc,roc_curve,precision_recall_curve,f1_score
+from sklearn.metrics import accuracy_score, auc, roc_curve, precision_recall_curve, f1_score
 import torch.optim as optim
 # from EarlyStop import EarlyStopping
-from sklearn.preprocessing import scale,MinMaxScaler,Normalizer,StandardScaler
+from sklearn.preprocessing import scale, MinMaxScaler, Normalizer, StandardScaler
 import time
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-
-
 
 
 def conv_k(in_chs, out_chs, k=1, s=1, p=1):
     """ Build size k kernel's convolution layer with padding"""
     return nn.Conv1d(in_chs, out_chs, kernel_size=k, stride=s, padding=p, bias=False)
 
-#自定义加载数据集
+
+# 自定义加载数据集
 class MyDataset(Dataset):
-    def __init__(self,specs,labels):
+    def __init__(self, specs, labels):
         self.specs = specs
         self.labels = labels
 
     def __getitem__(self, index):
-        spec,target = self.specs[index],self.labels[index]
-        return spec,target
+        spec, target = self.specs[index], self.labels[index]
+        return spec, target
 
     def __len__(self):
         return len(self.specs)
 
+
 ###定义是否需要标准化
-def ZspPocess(X_train, X_test,y_train,y_test,need=True): #True:需要标准化，Flase：不需要标准化
+def ZspPocess(X_train, X_test, y_train, y_test, need=True):  # True:需要标准化，Flase：不需要标准化
     if (need == True):
         # X_train_Nom = scale(X_train)
         # X_test_Nom = scale(X_test)
@@ -65,6 +73,7 @@ def ZspPocess(X_train, X_test,y_train,y_test,need=True): #True:需要标准化�
         ##使用loader加载测试数据
         data_test = MyDataset(X_test, y_test)
         return data_train, data_test
+
 
 class CNN3Lyaers(nn.Module):
     def __init__(self, nls):
@@ -99,15 +108,17 @@ class CNN3Lyaers(nn.Module):
         x = x.view(x.size(0), -1)
         # print(x.size())
         out = self.fc(x)
-        out = F.softmax(out,dim=1)
+        out = F.softmax(out, dim=1)
         return out
+
 
 class mlpmodel(nn.Module):
     def __init__(self, inputdim, outputdim):
         super(mlpmodel, self).__init__()
-        self.fc1 = nn.Linear(inputdim, inputdim//2)
-        self.fc2= nn.Linear(inputdim//2, inputdim // 4)
-        self.fc3 = nn.Linear(inputdim//4, outputdim)
+        self.fc1 = nn.Linear(inputdim, inputdim // 2)
+        self.fc2 = nn.Linear(inputdim // 2, inputdim // 4)
+        self.fc3 = nn.Linear(inputdim // 4, outputdim)
+
     def forward(self, x):
         x = self.fc1(x)
         x = self.fc2(x)
@@ -116,10 +127,8 @@ class mlpmodel(nn.Module):
         return x
 
 
-def CNNTrain(X_train, X_test,y_train,y_test, BATCH_SIZE, n_epochs, nls):
-
-
-    data_train, data_test = ZspPocess(X_train, X_test,y_train,y_test,need=True)
+def CNNTrain(X_train, X_test, y_train, y_test, BATCH_SIZE, n_epochs, nls):
+    data_train, data_test = ZspPocess(X_train, X_test, y_train, y_test, need=True)
     train_loader = torch.utils.data.DataLoader(data_train, batch_size=BATCH_SIZE, shuffle=True)
     test_loader = torch.utils.data.DataLoader(data_test, batch_size=BATCH_SIZE, shuffle=True)
 
@@ -127,11 +136,11 @@ def CNNTrain(X_train, X_test,y_train,y_test, BATCH_SIZE, n_epochs, nls):
 
     model = CNN3Lyaers(nls=nls).to(device)
     optimizer = optim.Adam(model.parameters(),
-                           lr=0.0001,weight_decay=0.0001)
+                           lr=0.0001, weight_decay=0.0001)
     scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, 'min', factor=0.5, verbose=1, eps=1e-06,
                                                            patience=10)
     criterion = nn.CrossEntropyLoss().to(device)  # 损失函数为焦损函数，多用于类别不平衡的多分类问题
-    #early_stopping = EarlyStopping(patience=30, delta=1e-4, path=store_path, verbose=False)
+    # early_stopping = EarlyStopping(patience=30, delta=1e-4, path=store_path, verbose=False)
 
     for epoch in range(n_epochs):
         train_acc = []
@@ -161,7 +170,7 @@ def CNNTrain(X_train, X_test,y_train,y_test, BATCH_SIZE, n_epochs, nls):
                 labels = Variable(labels).type(torch.LongTensor).to(device)  # batch y
                 outputs = model(inputs)  # 输出等于进入网络后的输入
                 test_loss = criterion(outputs, labels)  # cross entropy loss
-                _, predicted = torch.max(outputs.data,1)
+                _, predicted = torch.max(outputs.data, 1)
                 predicted = predicted.cpu().numpy()
                 labels = labels.cpu().numpy()
                 acc = accuracy_score(labels, predicted)
@@ -174,6 +183,7 @@ def CNNTrain(X_train, X_test,y_train,y_test, BATCH_SIZE, n_epochs, nls):
             # if early_stopping.early_stop:
             #     print(f'Early stopping! Best validation loss: {early_stopping.get_best_score()}')
             #     break
+
 
 def CNNtest(X_train, X_test, y_train, y_test, BATCH_SIZE, nls):
     # data_train, data_test = DataLoad(tp, test_ratio, 0, 404)
@@ -201,9 +211,8 @@ def CNNtest(X_train, X_test, y_train, y_test, BATCH_SIZE, nls):
     return np.mean(test_acc)
 
 
-def CNN(X_train, X_test, y_train, y_test, BATCH_SIZE, n_epochs,nls):
-
-    CNNTrain(X_train, X_test, y_train, y_test,BATCH_SIZE,n_epochs,nls)
-    acc = CNNtest(X_train, X_test, y_train, y_test,BATCH_SIZE,nls)
+def CNN(X_train, X_test, y_train, y_test, BATCH_SIZE, n_epochs, nls):
+    CNNTrain(X_train, X_test, y_train, y_test, BATCH_SIZE, n_epochs, nls)
+    acc = CNNtest(X_train, X_test, y_train, y_test, BATCH_SIZE, nls)
 
     return acc

@@ -9,12 +9,18 @@
 
 """
 
-from WaveSelect.Lar import Lar
-from WaveSelect.Spa import SPA
-from WaveSelect.Uve import UVE
-from WaveSelect.Cars import CARS_Cloud
-from WaveSelect.Pca import Pca
-from WaveSelect.GA import GA
+"""
+    这段代码实现了光谱数据的波长筛选/降维功能。其中使用了几种不同的方法，
+    包括：Cars, Lars, Uve, Spa, Pca, GA。用户可以通过传入不同的参数来
+    调用相应的筛选/降维方法，最后返回筛选/降维后的光谱数据以及对应的标签。
+"""
+
+from OpenSA.WaveSelect.Lar import Lar
+from OpenSA.WaveSelect.Spa import SPA
+from OpenSA.WaveSelect.Uve import UVE
+from OpenSA.WaveSelect.Cars import CARS_Cloud
+from OpenSA.WaveSelect.Pca import Pca
+from OpenSA.WaveSelect.GA import GA
 from sklearn.model_selection import train_test_split
 
 def SpctrumFeatureSelcet(method, X, y):

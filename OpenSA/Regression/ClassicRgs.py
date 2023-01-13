@@ -1,7 +1,7 @@
 
 from sklearn.cross_decomposition import PLSRegression
 from sklearn.neural_network import MLPRegressor
-# import hpelm
+import hpelm
 
 """
     -*- coding: utf-8 -*-
@@ -14,8 +14,16 @@ from sklearn.neural_network import MLPRegressor
 
 """
 
+"""
+    这些代码主要实现了使用多种回归模型，如PLS回归、SVR、MLP回归和ELM回归，
+    对给定的训练数据和测试数据进行预测，并使用 ModelRgsevaluate 函数
+    评估预测结果。其中 PLs，Svregression，Anngression和ELM分别对应使
+    用PLS回归，SVR，MLP回归和ELM回归对数据进行预测。返回的 Rmse, R2, Mae 
+    分别表示均方根误差，R2分数，平均绝对误差。
+"""
+
 from sklearn.svm import SVR
-from Evaluate.RgsEvaluate import ModelRgsevaluate
+from OpenSA.Evaluate.RgsEvaluate import ModelRgsevaluate
 
 def Pls( X_train, X_test, y_train, y_test):
 

@@ -9,6 +9,12 @@
 
 """
 
+"""
+    这段代码实现了一种叫做直觉性质选择（SPA）的方法。该方法可以从给定的预
+    测变量矩阵X中选择一组变量，用于多元线性回归。算法的基本流程是：首先将
+    X矩阵中的所有变量随机排序，然后选择第一个变量作为投影变量。然后通过QR
+    分解将投影变量投影到X矩阵上。重复这个过程，直到选择所有需要的变量。
+"""
 
 import pandas as pd
 import numpy as np
@@ -18,32 +24,34 @@ import scipy.io as scio
 # from progress.bar import Bar
 from matplotlib import pyplot as plt
 
+
 # ref: https://blog.csdn.net/qq2512446791
 
+def _projections_qr(X, k, M):
+    '''
+    X : 预测变量矩阵
+    K ：投影操作的初始列的索引
+    M : 结果包含的变量个数
+    return ：由投影操作生成的变量集的索引
+    '''
+
+    X_projected = X.copy()
+
+    # 计算列向量的平方和
+    norms = np.sum((X ** 2), axis=0)
+    # 找到norms中数值最大列的平方和
+    norm_max = np.amax(norms)
+
+    # 缩放第K列 使其成为“最大的”列
+    X_projected[:, k] = X_projected[:, k] * 2 * norm_max / norms[k]
+
+    # 矩阵分割 ，order 为列交换索引
+    _, __, order = qr(X_projected, 0, pivoting=True)
+
+    return order[:M].T
+
+
 class SPA:
-
-    def _projections_qr(self, X, k, M):
-        '''
-        X : 预测变量矩阵
-        K ：投影操作的初始列的索引
-        M : 结果包含的变量个数
-        return ：由投影操作生成的变量集的索引
-        '''
-
-        X_projected = X.copy()
-
-        # 计算列向量的平方和
-        norms = np.sum((X ** 2), axis=0)
-        # 找到norms中数值最大列的平方和
-        norm_max = np.amax(norms)
-
-        # 缩放第K列 使其成为“最大的”列
-        X_projected[:, k] = X_projected[:, k] * 2 * norm_max / norms[k]
-
-        # 矩阵分割 ，order 为列交换索引
-        _, __, order = qr(X_projected, 0, pivoting=True)
-
-        return order[:M].T
 
     def _validation(self, Xcal, ycal, var_sel, Xval=None, yval=None):
         '''
@@ -139,7 +147,7 @@ class SPA:
         # 进度条
         # with Bar('Projections :', max=K) as bar:
         for k in range(K):
-            SEL[:, k] = self._projections_qr(Xcaln, k, m_max)
+            SEL[:, k] = _projections_qr(Xcaln, k, m_max)
         #        bar.next()
 
         # 第二步： 进行评估

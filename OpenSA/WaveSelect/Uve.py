@@ -9,8 +9,12 @@
 
 """
 
-
-
+"""
+    这段代码实现了一个称为 "UVE" 的算法，它是一种基于 PLS 回归的特征选
+    择方法，用于在光谱数据中选择最重要的特征。算法通过使用许多次 PLS 回
+    归并对每个回归系数求平均值和标准差来计算特征重要性度量。最后，用于选择
+    最佳特征子集的交叉验证算法。
+"""
 
 from sklearn.cross_decomposition import PLSRegression
 from sklearn.linear_model import LinearRegression
@@ -22,16 +26,17 @@ from sklearn.utils import shuffle
 from numpy.linalg import matrix_rank as rank
 import numpy as np
 
+
 class UVE:
     def __init__(self, x, y, ncomp=1, nrep=500, testSize=0.2):
 
-        '''
+        """
         X : 预测变量矩阵
         y ：标签
         ncomp : 结果包含的变量个数
         testSize: PLS中划分的数据集
         return ：波长筛选后的光谱数据
-        '''
+        """
 
         self.x = x
         self.y = y
@@ -64,7 +69,7 @@ class UVE:
         self.featureIndex = np.argsort(-np.abs(self.criteria))
         for i in range(self.x.shape[1]):
             xi = self.x[:, self.featureIndex[:i + 1]]
-            if i<self.ncomp:
+            if i < self.ncomp:
                 regModel = LinearRegression()
             else:
                 regModel = PLSRegression(min([self.ncomp, rank(xi)]))
@@ -74,7 +79,7 @@ class UVE:
 
     def cutFeature(self, *args):
         cuti = np.argmax(self.featureR2)
-        self.selFeature = self.featureIndex[:cuti+1]
+        self.selFeature = self.featureIndex[:cuti + 1]
         if len(args) != 0:
             returnx = list(args)
             i = 0

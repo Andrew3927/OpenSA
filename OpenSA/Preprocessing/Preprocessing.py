@@ -8,6 +8,12 @@
     @License：
 
 """
+
+"""
+    这段代码主要是实现了一些处理光谱数据的预处理方法，包括最大最小值
+    归一化(MMS)，标准化(SS)，均值中心化(CT)，标准正态变换(SNV)和移动
+    平均平滑(MA)。这些方法都是常用于光谱数据预处理的方法。
+"""
 import numpy as np
 from scipy import signal
 from sklearn.linear_model import LinearRegression

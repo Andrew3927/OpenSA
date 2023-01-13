@@ -9,6 +9,13 @@
 
 """
 
+"""
+    这个代码实现了两种划分数据集的方式：随机划分和基于SPXY算法的划分。
+    首先实现了一个随机划分函数，利用sklearn中的train_test_split函数实
+    现；其次实现了一个基于SPXY算法的划分函数。这个算法是基于数据和标签之
+    间的相似度来划分数据集。
+"""
+
 
 
 from sklearn.model_selection import train_test_split

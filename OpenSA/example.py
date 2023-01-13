@@ -9,6 +9,25 @@
 
 """
 
+"""
+    这个代码是一个光谱分析的程序，它主要包含了光谱预处理、光谱波长筛选、
+    聚类分析、定量分析和定性分析等功能。
+
+    首先，通过调用Preprocessing模块中的Preprocessing函数进行光谱预处理。
+    
+    然后，通过调用WaveSelect模块中的SpctrumFeatureSelcet函数进行光谱波
+    长筛选。
+    
+    接着，通过调用Clustering模块中的Cluster函数进行聚类分析。
+    
+    再次，通过调用Regression模块中的QuantitativeAnalysis函数进行定量
+    分析，通过调用Classification模块中的QualitativeAnalysis函数进行
+    定性分析。
+    
+    最后，程序还提供了两个函数 SpectralClusterAnalysis 和 
+    SpectralQuantitativeAnalysis, 分别对光谱聚类分析和光谱定量分析
+    进行了封装。
+"""
 
 import numpy as np
 from DataLoad.DataLoad import SetSplit, LoadNirtest
@@ -21,7 +40,8 @@ from Clustering.Cluster import Cluster
 from Regression.Rgs import QuantitativeAnalysis
 from Classification.Cls import QualitativeAnalysis
 
-#光谱聚类分析
+
+# 光谱聚类分析
 def SpectralClusterAnalysis(data, label, ProcessMethods, FslecetedMethods, ClusterMethods):
     """
      :param data: shape (n_samples, n_features), 光谱数据
@@ -35,12 +55,12 @@ def SpectralClusterAnalysis(data, label, ProcessMethods, FslecetedMethods, Clust
     ProcesedData = Preprocessing(ProcessMethods, data)
     FeatrueData, _ = SpctrumFeatureSelcet(FslecetedMethods, ProcesedData, label)
     Clusterlabels = Cluster(ClusterMethods, FeatrueData)
-    #ClusterPlot(data, Clusterlabels)
+    # ClusterPlot(data, Clusterlabels)
     return Clusterlabels
+
 
 # 光谱定量分析
 def SpectralQuantitativeAnalysis(data, label, ProcessMethods, FslecetedMethods, SetSplitMethods, model):
-
     """
     :param data: shape (n_samples, n_features), 光谱数据
     :param label: shape (n_samples, ), 光谱数据对应的标签(理化性质)
@@ -55,12 +75,12 @@ def SpectralQuantitativeAnalysis(data, label, ProcessMethods, FslecetedMethods, 
     ProcesedData = Preprocessing(ProcessMethods, data)
     FeatrueData, labels = SpctrumFeatureSelcet(FslecetedMethods, ProcesedData, label)
     X_train, X_test, y_train, y_test = SetSplit(SetSplitMethods, FeatrueData, labels, test_size=0.2, randomseed=123)
-    Rmse, R2, Mae = QuantitativeAnalysis(model, X_train, X_test, y_train, y_test )
+    Rmse, R2, Mae = QuantitativeAnalysis(model, X_train, X_test, y_train, y_test)
     return Rmse, R2, Mae
+
 
 # 光谱定性分析
 def SpectralQualitativeAnalysis(data, label, ProcessMethods, FslecetedMethods, SetSplitMethods, model):
-
     """
     :param data: shape (n_samples, n_features), 光谱数据
     :param label: shape (n_samples, ), 光谱数据对应的标签(理化性质)
@@ -74,20 +94,12 @@ def SpectralQualitativeAnalysis(data, label, ProcessMethods, FslecetedMethods, S
     ProcesedData = Preprocessing(ProcessMethods, data)
     FeatrueData, labels = SpctrumFeatureSelcet(FslecetedMethods, ProcesedData, label)
     X_train, X_test, y_train, y_test = SetSplit(SetSplitMethods, FeatrueData, labels, test_size=0.2, randomseed=123)
-    acc = QualitativeAnalysis(model, X_train, X_test, y_train, y_test )
+    acc = QualitativeAnalysis(model, X_train, X_test, y_train, y_test)
 
     return acc
 
 
-
-
-
-
-
-
-
 if __name__ == '__main__':
-
     # ## 载入原始数据并可视化
     # data1, label1 = LoadNirtest('Cls')
     # #plotspc(data1, "raw specturm")
@@ -96,16 +108,13 @@ if __name__ == '__main__':
     # acc = SpectralQualitativeAnalysis(data1, label1, "MSC", "Lars", "random", "PLS_DA")
     # print("The acc:{} of result!".format(acc))
 
-
     ## 载入原始数据并可视化
     data2, label2 = LoadNirtest('Rgs')
-    #plotspc(data2, "raw specturm")
+    # plotspc(data2, "raw specturm")
     # 光谱定量分析演示
     # 示意1: 预处理算法:MSC , 波长筛选算法: Uve, 数据集划分:KS, 定性分量模型: SVR
     RMSE, R2, MAE = SpectralQuantitativeAnalysis(data2, label2, "None", "None", "random", "CNN")
     print("The RMSE:{} R2:{}, MAE:{} of result!".format(RMSE, R2, MAE))
-
-
 
     # ## 光谱预处理并可视化
     # method = "SNV"
@@ -120,7 +129,3 @@ if __name__ == '__main__':
     # print(len(SpectruSelected[0, :]))
     # # #划分数据集
     # X_train, X_test, y_train, y_test = SetSplit('spxy', SpectruSelected, y, 0.2, 123)
-
-
-
-

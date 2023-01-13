@@ -4,6 +4,13 @@
     Describe：this for train NIRS with use 1-D Resnet model to transfer
 """
 
+"""
+    这段代码主要实现了利用1-D Resnet模型进行NIRS预测的训练过程。
+    代码包括了自定义数据加载，标准化处理，模型训练，训练结果评估等过程。
+    其中定义了一个函数CNNTrain，该函数通过输入模型类型，训练数据，测试数
+    据，训练标签，测试标签和训练轮数来进行模型训练。
+"""
+
 import numpy as np
 import torch
 import torch.nn as nn
@@ -13,10 +20,10 @@ import torchvision
 import torch.nn.functional as F
 from sklearn.preprocessing import scale,MinMaxScaler,Normalizer,StandardScaler
 import torch.optim as optim
-from Regression.CnnModel import ConvNet, DeepSpectra, AlexNet
+from OpenSA.Regression.CnnModel import ConvNet, DeepSpectra, AlexNet
 import os
 from datetime import datetime
-from Evaluate.RgsEvaluate import ModelRgsevaluate, ModelRgsevaluatePro
+from OpenSA.Evaluate.RgsEvaluate import ModelRgsevaluate, ModelRgsevaluatePro
 import matplotlib.pyplot  as plt
 
 
