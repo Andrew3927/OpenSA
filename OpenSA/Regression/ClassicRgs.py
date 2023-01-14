@@ -23,7 +23,7 @@ import hpelm
 """
 
 from sklearn.svm import SVR
-from OpenSA.Evaluate.RgsEvaluate import ModelRgsevaluate
+from Evaluate.RgsEvaluate import ModelRgsevaluate
 
 def Pls( X_train, X_test, y_train, y_test):
 
