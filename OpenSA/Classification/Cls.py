@@ -21,9 +21,9 @@
     和评估函数，最后返回评估结果。
 """
 
-from OpenSA.Classification.ClassicCls import ANN, SVM, PLS_DA, RF
-from OpenSA.Classification.CNN import CNN
-from OpenSA.Classification.SAE import SAE
+from Classification.ClassicCls import ANN, SVM, PLS_DA, RF
+from Classification.CNN import CNN
+from Classification.SAE import SAE
 
 def  QualitativeAnalysis(model, X_train, X_test, y_train, y_test):
 

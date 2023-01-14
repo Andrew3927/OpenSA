@@ -20,10 +20,10 @@ import torchvision
 import torch.nn.functional as F
 from sklearn.preprocessing import scale,MinMaxScaler,Normalizer,StandardScaler
 import torch.optim as optim
-from OpenSA.Regression.CnnModel import ConvNet, DeepSpectra, AlexNet
+from Regression.CnnModel import ConvNet, DeepSpectra, AlexNet
 import os
 from datetime import datetime
-from OpenSA.Evaluate.RgsEvaluate import ModelRgsevaluate, ModelRgsevaluatePro
+from Evaluate.RgsEvaluate import ModelRgsevaluate, ModelRgsevaluatePro
 import matplotlib.pyplot  as plt
 
 

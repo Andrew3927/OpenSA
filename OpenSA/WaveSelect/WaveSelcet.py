@@ -15,12 +15,12 @@
     调用相应的筛选/降维方法，最后返回筛选/降维后的光谱数据以及对应的标签。
 """
 
-from OpenSA.WaveSelect.Lar import Lar
-from OpenSA.WaveSelect.Spa import SPA
-from OpenSA.WaveSelect.Uve import UVE
-from OpenSA.WaveSelect.Cars import CARS_Cloud
-from OpenSA.WaveSelect.Pca import Pca
-from OpenSA.WaveSelect.GA import GA
+from WaveSelect.Lar import Lar
+from WaveSelect.Spa import SPA
+from WaveSelect.Uve import UVE
+from WaveSelect.Cars import CARS_Cloud
+from WaveSelect.Pca import Pca
+from WaveSelect.GA import GA
 from sklearn.model_selection import train_test_split
 
 def SpctrumFeatureSelcet(method, X, y):

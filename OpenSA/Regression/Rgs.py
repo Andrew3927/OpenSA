@@ -20,8 +20,8 @@
     三个结果，分别是均方根误差（Rmse），决定系数（R2）和平均绝对误差（Mae）。
 """
 
-from OpenSA.Regression.ClassicRgs import Pls, Anngression, Svregression, ELM
-from OpenSA.Regression.CNN import CNNTrain
+from Regression.ClassicRgs import Pls, Anngression, Svregression, ELM
+from Regression.CNN import CNNTrain
 
 
 def QuantitativeAnalysis(model, X_train, X_test, y_train, y_test):
