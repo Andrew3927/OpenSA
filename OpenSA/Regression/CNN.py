@@ -20,7 +20,7 @@ import torchvision
 import torch.nn.functional as F
 from sklearn.preprocessing import scale,MinMaxScaler,Normalizer,StandardScaler
 import torch.optim as optim
-from Regression.CnnModel import ConvNet, DeepSpectra, AlexNet
+from Regression.CnnModel import ConvNet, DeepSpectra, AlexNet, SpectraCNN
 import os
 from datetime import datetime
 from Evaluate.RgsEvaluate import ModelRgsevaluate, ModelRgsevaluatePro
@@ -123,7 +123,7 @@ def CNNTrain(NetType, X_train, X_test, y_train, y_test, EPOCH):
 
     criterion = nn.MSELoss().to(device)  # 损失函数为焦损函数，多用于类别不平衡的多分类问题
     # optimizer = optim.Adam(model.parameters(), lr=LR)#,  weight_decay=0.001)  # 优化方式为mini-batch momentum-SGD，并采用L2正则化（权重衰减）
-    optimizer = torch.optim.Adam(model.parameters(), lr=0.001, weight_decay=0.001)
+    optimizer = optim.Adam(model.parameters(), lr=0.001, weight_decay=0.001)
     # # initialize the early_stopping object
     scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, 'min', factor=0.5, verbose=1, eps=1e-06,
                                                            patience=20)
