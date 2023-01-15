@@ -1,200 +1,99 @@
 """
-    Create on 2021-1-21
-    Author：Pengyou Fu
-    Describe：this for train NIRS with use 1-D Resnet model to transfer
+    -*- coding: utf-8 -*-
+    @Time   :2022/04/12 17:10
+    @Author : Pengyou FU
+    @blogs  : https://blog.csdn.net/Echo_Code?spm=1000.2115.3001.5343
+    @github : https://github.com/FuSiry/OpenSA
+    @WeChat : Fu_siry
+    @License：Apache-2.0 license
+
 """
 
 """
-    这段代码主要实现了利用1-D Resnet模型进行NIRS预测的训练过程。
-    代码包括了自定义数据加载，标准化处理，模型训练，训练结果评估等过程。
-    其中定义了一个函数CNNTrain，该函数通过输入模型类型，训练数据，测试数
-    据，训练标签，测试标签和训练轮数来进行模型训练。
+    这个代码是一个光谱分析的程序，它主要包含了光谱预处理、光谱波长筛选、
+    聚类分析、定量分析和定性分析等功能。
+
+    首先，通过调用Preprocessing模块中的Preprocessing函数进行光谱预处理。
+    
+    然后，通过调用WaveSelect模块中的SpctrumFeatureSelcet函数进行光谱波
+    长筛选。
+    
+    接着，通过调用Clustering模块中的Cluster函数进行聚类分析。
+    
+    再次，通过调用Regression模块中的QuantitativeAnalysis函数进行定量
+    分析，通过调用Classification模块中的QualitativeAnalysis函数进行
+    定性分析。
+    
+    最后，程序还提供了两个函数 SpectralClusterAnalysis 和 
+    SpectralQuantitativeAnalysis, 分别对光谱聚类分析和光谱定量分析
+    进行了封装。
 """
 
 import numpy as np
-import torch
-import torch.nn as nn
-from torch.autograd import Variable
-from torch.utils.data import Dataset
-import torchvision
-import torch.nn.functional as F
-from sklearn.preprocessing import scale,MinMaxScaler,Normalizer,StandardScaler
-import torch.optim as optim
-from Regression.CnnModel import ConvNet, DeepSpectra, AlexNet
-import os
-from datetime import datetime
-from Evaluate.RgsEvaluate import ModelRgsevaluate, ModelRgsevaluatePro
-import matplotlib.pyplot  as plt
-from tqdm import tqdm
+from DataLoad.DataLoad import SetSplit, LoadNirtest
+from Preprocessing.Preprocessing import Preprocessing
+from WaveSelect.WaveSelcet import SpctrumFeatureSelcet
+from Plot.SpectrumPlot import plotspc
+# from Plot.SpectrumPlot import ClusterPlot
+from Simcalculation.SimCa import Simcalculation
+from Clustering.Cluster import Cluster
+from Regression.Rgs import QuantitativeAnalysis
+from Classification.Cls import QualitativeAnalysis
 
 
-LR = 0.001
-BATCH_SIZE = 16
-TBATCH_SIZE = 240
+# 光谱聚类分析
+def SpectralClusterAnalysis(data, label, ProcessMethods, FslecetedMethods, ClusterMethods):
+    """
+     :param data: shape (n_samples, n_features), 光谱数据
+     :param label: shape (n_samples, ), 光谱数据对应的标签(理化性质)
+     :param ProcessMethods: string, 预处理的方法, 具体可以看预处理模块
+     :param FslecetedMethods: string, 光谱波长筛选的方法, 提供UVE、SPA、Lars、Cars、Pca
+     :param ClusterMethods : string, 聚类的方法，提供Kmeans聚类、FCM聚类
+     :return: Clusterlabels: 返回的隶属矩阵
+
+     """
+    ProcesedData = Preprocessing(ProcessMethods, data)
+    FeatrueData, _ = SpctrumFeatureSelcet(FslecetedMethods, ProcesedData, label)
+    Clusterlabels = Cluster(ClusterMethods, FeatrueData)
+    # ClusterPlot(data, Clusterlabels)
+    return Clustebrlabels
 
 
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-
-#自定义加载数据集
-class MyDataset(Dataset):
-    def __init__(self,specs,labels):
-        self.specs = specs
-        self.labels = labels
-
-    def __getitem__(self, index):
-        spec,target = self.specs[index],self.labels[index]
-        return spec,target
-
-    def __len__(self):
-        return len(self.specs)
-
-
-
-###定义是否需要标准化
-def ZspPocessnew(X_train, X_test, y_train, y_test, need=True): #True:需要标准化，Flase：不需要标准化
-
-    global standscale
-    global yscaler
-
-    if (need == True):
-        standscale = StandardScaler()
-        X_train_Nom = standscale.fit_transform(X_train)
-        X_test_Nom = standscale.transform(X_test)
-
-        #yscaler = StandardScaler()
-        yscaler = MinMaxScaler()
-        y_train = yscaler.fit_transform(y_train.reshape(-1, 1))
-        y_test = yscaler.transform(y_test.reshape(-1, 1))
-
-        X_train_Nom = X_train_Nom[:, np.newaxis, :]
-        X_test_Nom = X_test_Nom[:, np.newaxis, :]
-
-        ##使用loader加载测试数据
-        data_train = MyDataset(X_train_Nom, y_train)
-        data_test = MyDataset(X_test_Nom, y_test)
-        return data_train, data_test
-    elif((need == False)):
-        yscaler = StandardScaler()
-        # yscaler = MinMaxScaler()
-
-        X_train_new = X_train[:, np.newaxis, :]  #
-        X_test_new = X_test[:, np.newaxis, :]
-
-        y_train = yscaler.fit_transform(y_train)
-        y_test = yscaler.transform(y_test)
-
-        data_train = MyDataset(X_train_new, y_train)
-        ##使用loader加载测试数据
-        data_test = MyDataset(X_test_new, y_test)
-
-        return data_train, data_test
+# 光谱定量分析
+def SpectralQuantitativeAnalysis(data, label, ProcessMethods, FslecetedMethods, SetSplitMethods, model):
+    """
+    :param data: shape (n_samples, n_features), 光谱数据
+    :param label: shape (n_samples, ), 光谱数据对应的标签(理化性质)
+    :param ProcessMethods: string, 预处理的方法, 具体可以看预处理模块
+    :param FslecetedMethods: string, 光谱波长筛选的方法, 提供UVE、SPA、Lars、Cars、Pca
+    :param SetSplitMethods : string, 划分数据集的方法, 提供随机划分、KS划分、SPXY划分
+    :param model : string, 定量分析模型, 包括ANN、PLS、SVR、ELM、CNN、SAE等，后续会不断补充完整
+    :return: Rmse: float, Rmse回归误差评估指标
+             R2: float, 回归拟合,
+             Mae: float, Mae回归误差评估指标
+    """
+    ProcesedData = Preprocessing(ProcessMethods, data)
+    FeatrueData, labels = SpctrumFeatureSelcet(FslecetedMethods, ProcesedData, label)
+    X_train, X_test, y_train, y_test = SetSplit(SetSplitMethods, FeatrueData, labels, test_size=0.2, randomseed=123)
+    Rmse, R2, Mae = QuantitativeAnalysis(model, X_train, X_test, y_train, y_test)
+    return Rmse, R2, Mae
 
 
+# 光谱定性分析
+def SpectralQualitativeAnalysis(data, label, ProcessMethods, FslecetedMethods, SetSplitMethods, model):
+    """
+    :param data: shape (n_samples, n_features), 光谱数据
+    :param label: shape (n_samples, ), 光谱数据对应的标签(理化性质)
+    :param ProcessMethods: string, 预处理的方法, 具体可以看预处理模块
+    :param FslecetedMethods: string, 光谱波长筛选的方法, 提供UVE、SPA、Lars、Cars、Pca
+    :param SetSplitMethods : string, 划分数据集的方法, 提供随机划分、KS划分、SPXY划分
+    :param model : string, 定性分析模型, 包括ANN、PLS_DA、SVM、RF、CNN、SAE等，后续会不断补充完整
+    :return: acc： float, 分类准确率
+    """
 
+    ProcesedData = Preprocessing(ProcessMethods, data)
+    FeatrueData, labels = SpctrumFeatureSelcet(FslecetedMethods, ProcesedData, label)
+    X_train, X_test, y_train, y_test = SetSplit(SetSplitMethods, FeatrueData, labels, test_size=0.2, randomseed=123)
+    acc = QualitativeAnalysis(model, X_train, X_test, y_train, y_test)
 
-def CNNTrain(NetType, X_train, X_test, y_train, y_test, EPOCH):
-
-
-    data_train, data_test = ZspPocessnew(X_train, X_test, y_train, y_test, need=True)
-    # data_train, data_test = ZPocess(X_train, X_test, y_train, y_test)
-
-    train_loader = torch.utils.data.DataLoader(data_train, batch_size=BATCH_SIZE, shuffle=True)
-    test_loader = torch.utils.data.DataLoader(data_test, batch_size=TBATCH_SIZE, shuffle=True)
-
-    if NetType == 'ConNet':
-        model = ConvNet().to(device)
-    elif NetType == 'AlexNet':
-        model = AlexNet().to(device)
-    elif NetType == 'DeepSpectra':
-        model = DeepSpectra().to(device)
-
-
-
-    criterion = nn.MSELoss().to(device)  # 损失函数为焦损函数，多用于类别不平衡的多分类问题
-    optimizer = optim.Adam(model.parameters(), lr=LR)#,  weight_decay=0.001)  # 优化方式为mini-batch momentum-SGD，并采用L2正则化（权重衰减）
-    # # initialize the early_stopping object
-    scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, 'min', factor=0.5, verbose=1, eps=1e-06,
-                                                           patience=20)
-
-
-    print("Start Training!")  # 定义遍历数据集的次数
-    # to track the training loss as the model trains
-
-    train_losses = []
-    for epoch in range(EPOCH):
-        model.train()  # 不训练
-        train_rmse = []
-        train_r2 = []
-        train_mae = []
-        for i, data in enumerate(train_loader):  # gives batch data, normalize x when iterate train_loader
-            inputs, labels = data  # 输入和标签都等于data
-            inputs = Variable(inputs).type(torch.FloatTensor).to(device)  # batch x
-            labels = Variable(labels).type(torch.FloatTensor).to(device)  # batch y
-            output = model(inputs)  # cnn output
-            loss = criterion(output, labels)  # MSE
-            optimizer.zero_grad()  # clear gradients for this training step
-            loss.backward()  # backpropagation, compute gradients
-            optimizer.step()  # apply gradients
-            pred = output.detach().cpu().numpy()
-            y_true = labels.detach().cpu().numpy()
-            train_losses.append(loss.item())
-            rmse, R2, mae = ModelRgsevaluatePro(pred, y_true, yscaler)
-            # plotpred(pred, y_true, yscaler))
-            train_rmse.append(rmse)
-            train_r2.append(R2)
-            train_mae.append(mae)
-        avg_train_loss = np.mean(train_losses)
-        avgrmse = np.mean(train_rmse)
-        avgr2 = np.mean(train_r2)
-        avgmae = np.mean(train_mae)
-        print('Epoch:{}, TRAIN:rmse:{}, R2:{}, mae:{}'.format((epoch+1), (avgrmse), (avgr2), (avgmae)))
-        print('lr:{}, avg_train_loss:{}'.format((optimizer.param_groups[0]['lr']), avg_train_loss))
-
-        with torch.no_grad():  # 无梯度
-            model.eval()  # 不训练
-            test_rmse = []
-            test_r2 = []
-            test_mae = []
-            for i, data in enumerate(test_loader):
-                inputs, labels = data  # 输入和标签都等于data
-                inputs = Variable(inputs).type(torch.FloatTensor).to(device)  # batch x
-                labels = Variable(labels).type(torch.FloatTensor).to(device)  # batch y
-                outputs = model(inputs)  # 输出等于进入网络后的输入
-                pred = outputs.detach().cpu().numpy()
-                y_true = labels.detach().cpu().numpy()
-                rmse, R2, mae = ModelRgsevaluatePro(pred, y_true, yscaler)
-                test_rmse.append(rmse)
-                test_r2.append(R2)
-                test_mae.append(mae)
-            avgrmse = np.mean(test_rmse)
-            avgr2   = np.mean(test_r2)
-            avgmae = np.mean(test_mae)
-            print('EPOCH：{}, TEST: rmse:{}, R2:{}, mae:{}'.format((epoch+1), (avgrmse), (avgr2), (avgmae)))
-            # 将每次测试结果实时写入acc.txt文件中
-            scheduler.step(rmse)
-
-    ##################### 将 训练时的loss 打印出来 #######################
-    print("\n\nThe loss data of %d iterations has been recorded." % (np.array(train_losses).shape[0]))
-    plt.plot(train_losses)
-    plt.xlabel("Iterations")
-    plt.ylabel("Training loss")
-    plt.title("CNN Training Loss")
-    plt.show()
-    ############################################################
-
-    return avgrmse, avgr2, avgmae
-
-
-
-
-
-
-
-
-
-
-
-#
-# def CNN(X_train, X_test, y_train, y_test, BATCH_SIZE, n_epochs):
-#
-#     CNNTrain(X_train, X_test, y_train, y_test,BATCH_SIZE,n_epochs)
+    return acc
