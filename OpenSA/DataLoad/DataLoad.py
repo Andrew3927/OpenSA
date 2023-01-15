@@ -195,7 +195,7 @@ def LoadNirtest(type):
 
     return data, label
 
-def SetSplit(method, data, label, test_size=0.2, randomSeed=123):
+def SetSplit(method, data, label, test_size=0.2, randomseed=123):
     """
     数据集划分函数，根据不同的划分方式进行划分。
     :param method: str
@@ -206,7 +206,7 @@ def SetSplit(method, data, label, test_size=0.2, randomSeed=123):
         数据标签，n_sample 是样本数量。
     :param test_size: float, optional (default=0.2)
         测试数据集所占比例。
-    :param randomSeed: int, optional (default=123)
+    :param randomseed: int, optional (default=123)
         随机种子。
     :return:
         X_train : numpy array, shape (n_samples, n_features)
@@ -219,7 +219,7 @@ def SetSplit(method, data, label, test_size=0.2, randomSeed=123):
             测试数据标签。
     """
     if method == "random":
-        X_train, X_test, y_train, y_test = random(data, label, test_size, randomSeed)
+        X_train, X_test, y_train, y_test = random(data, label, test_size, randomseed)
     elif method == "spxy":
         X_train, X_test, y_train, y_test = spxy(data, label, test_size)
     elif method == "ks":

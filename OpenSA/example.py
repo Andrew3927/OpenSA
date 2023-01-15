@@ -74,7 +74,7 @@ def SpectralQuantitativeAnalysis(data, label, ProcessMethods, FslecetedMethods, 
     """
     ProcesedData = Preprocessing(ProcessMethods, data)
     FeatrueData, labels = SpctrumFeatureSelcet(FslecetedMethods, ProcesedData, label)
-    X_train, X_test, y_train, y_test = SetSplit(SetSplitMethods, FeatrueData, labels, test_size=0.2, randomSeed=123)
+    X_train, X_test, y_train, y_test = SetSplit(SetSplitMethods, FeatrueData, labels, test_size=0.2, randomseed=123)
     Rmse, R2, Mae = QuantitativeAnalysis(model, X_train, X_test, y_train, y_test)
     return Rmse, R2, Mae
 
@@ -93,7 +93,7 @@ def SpectralQualitativeAnalysis(data, label, ProcessMethods, FslecetedMethods, S
 
     ProcesedData = Preprocessing(ProcessMethods, data)
     FeatrueData, labels = SpctrumFeatureSelcet(FslecetedMethods, ProcesedData, label)
-    X_train, X_test, y_train, y_test = SetSplit(SetSplitMethods, FeatrueData, labels, test_size=0.2, randomSeed=123)
+    X_train, X_test, y_train, y_test = SetSplit(SetSplitMethods, FeatrueData, labels, test_size=0.2, randomseed=123)
     acc = QualitativeAnalysis(model, X_train, X_test, y_train, y_test)
 
     return acc
