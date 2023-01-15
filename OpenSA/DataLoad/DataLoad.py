@@ -195,21 +195,31 @@ def LoadNirtest(type):
 
     return data, label
 
-def SetSplit(method, data, label, test_size=0.2, randomseed=123):
-
+def SetSplit(method, data, label, test_size=0.2, randomSeed=123):
     """
-    :param method: the method to split trainset and testset, include: random, kennard-stone(ks), spxy
-    :param data: shape (n_samples, n_features)
-    :param label: shape (n_sample, )
-    :param test_size: the ratio of test_size, default: 0.2
-    :return: X_train: (n_samples, n_features)
-             X_test: (n_samples, n_features)
-             y_train: (n_sample, )
-             y_test: (n_sample, )
+    数据集划分函数，根据不同的划分方式进行划分。
+    :param method: str
+        划分方式，可选值为 "random"、"spxy"、"ks"。
+    :param data: numpy array, shape (n_samples, n_features)
+        输入的数据，n_samples 是样本数量，n_features 是样本特征数量。
+    :param label: numpy array, shape (n_sample, )
+        数据标签，n_sample 是样本数量。
+    :param test_size: float, optional (default=0.2)
+        测试数据集所占比例。
+    :param randomSeed: int, optional (default=123)
+        随机种子。
+    :return:
+        X_train : numpy array, shape (n_samples, n_features)
+        训练数据集。
+        X_test : numpy array, shape (n_samples, n_features)
+            测试数据集。
+        y_train : numpy array, shape (n_sample, )
+            训练数据标签。
+        y_test : numpy array, shape (n_sample, )
+            测试数据标签。
     """
-
     if method == "random":
-        X_train, X_test, y_train, y_test = random(data, label, test_size, randomseed)
+        X_train, X_test, y_train, y_test = random(data, label, test_size, randomSeed)
     elif method == "spxy":
         X_train, X_test, y_train, y_test = spxy(data, label, test_size)
     elif method == "ks":

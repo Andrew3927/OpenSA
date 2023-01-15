@@ -25,6 +25,24 @@ from Regression.CNN import CNNTrain
 
 
 def QuantitativeAnalysis(model, X_train, X_test, y_train, y_test):
+    """
+    回归模型定量分析函数，输入模型类型和训练、测试数据集，返回RMSE, R2, MAE指标。
+    :param model: str 模型类型，可选值为 "Pls"、"ANN"、"SVR"、"ELM"、"CNN"。
+    :param X_train: numpy array，shape (n_samples, n_features) 训练数据集，n_samples是样本数量，n_features是样本特征数量
+    :param X_test: numpy array，shape (n_samples，n_features) 测试数据集，n_samples 是样本数量，n_features 是样本特征数量。
+    :param y_train: numpy array, shape (n_sample, ) 训练数据标签，n_sample 是样本数量。
+    :param y_test: numpy array, shape (n_sample, ) 测试数据标签，n_sample 是样本数量。
+    :return:
+        Rmse : float
+            RMSE指标。
+        R2 : float
+            R2指标。
+        Mae : float
+            MAE指标。
+    """
+    Rmse = 0
+    R2 = 0
+    Mae = 0
     if model == "Pls":
         Rmse, R2, Mae = Pls(X_train, X_test, y_train, y_test)
     elif model == "ANN":
