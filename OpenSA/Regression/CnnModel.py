@@ -210,7 +210,7 @@ class SpectraCNN(nn.Module):
         self.dropout3 = nn.Dropout(p=0.25)
 
         # Output layer
-        self.fc = nn.Linear(in_features=64, out_features=1)
+        self.fc = nn.Linear(in_features=2048, out_features=1)
 
     def forward(self, x):
         x = self.conv1(x)
