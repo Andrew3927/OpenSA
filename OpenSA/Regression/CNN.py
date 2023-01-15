@@ -25,6 +25,7 @@ import os
 from datetime import datetime
 from Evaluate.RgsEvaluate import ModelRgsevaluate, ModelRgsevaluatePro
 import matplotlib.pyplot  as plt
+from tqdm import tqdm
 
 
 LR = 0.001
@@ -114,10 +115,13 @@ def CNNTrain(NetType, X_train, X_test, y_train, y_test, EPOCH):
     # # initialize the early_stopping object
     scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, 'min', factor=0.5, verbose=1, eps=1e-06,
                                                            patience=20)
+
+
     print("Start Training!")  # 定义遍历数据集的次数
     # to track the training loss as the model trains
+
+    train_losses = []
     for epoch in range(EPOCH):
-        train_losses = []
         model.train()  # 不训练
         train_rmse = []
         train_r2 = []
@@ -168,6 +172,15 @@ def CNNTrain(NetType, X_train, X_test, y_train, y_test, EPOCH):
             print('EPOCH：{}, TEST: rmse:{}, R2:{}, mae:{}'.format((epoch+1), (avgrmse), (avgr2), (avgmae)))
             # 将每次测试结果实时写入acc.txt文件中
             scheduler.step(rmse)
+
+    ##################### 将 训练时的loss 打印出来 #######################
+    print("\n\nThe loss data of %d iterations has been recorded." % (np.array(train_losses).shape[0]))
+    plt.plot(train_losses)
+    plt.xlabel("Iterations")
+    plt.ylabel("Training loss")
+    plt.title("CNN Training Loss")
+    plt.show()
+    ############################################################
 
     return avgrmse, avgr2, avgmae
 

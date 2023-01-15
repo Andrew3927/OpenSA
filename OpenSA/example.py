@@ -113,7 +113,7 @@ if __name__ == '__main__':
     plotspc(data2, "raw specturm")
     # 光谱定量分析演示
     # 示意1: 预处理算法:MSC , 波长筛选算法: Uve, 数据集划分:KS, 定性分量模型: SVR
-    RMSE, R2, MAE = SpectralQuantitativeAnalysis(data2, label2, "None", "None", "random", "PLS")
+    RMSE, R2, MAE = SpectralQuantitativeAnalysis(data2, label2, "None", "None", "random", "Pls")
     print("The RMSE:{} R2:{}, MAE:{} of result!".format(RMSE, R2, MAE))
 
     # ## 光谱预处理并可视化

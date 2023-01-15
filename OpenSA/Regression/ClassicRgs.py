@@ -52,10 +52,11 @@ def Svregression(X_train, X_test, y_train, y_test):
 
 def Anngression(X_train, X_test, y_train, y_test):
 
-
+    # MAX_ITER = 400
+    MAX_ITER = 600
     model = MLPRegressor(
         hidden_layer_sizes=(20, 20), activation='relu', solver='adam', alpha=0.0001, batch_size='auto',
-        learning_rate='constant', learning_rate_init=0.001, power_t=0.5, max_iter=400, shuffle=True,
+        learning_rate='constant', learning_rate_init=0.001, power_t=0.5, max_iter=MAX_ITER, shuffle=True,
         random_state=1, tol=0.0001, verbose=False, warm_start=False, momentum=0.9, nesterovs_momentum=True,
         early_stopping=False, beta_1=0.9, beta_2=0.999, epsilon=1e-08)
 
