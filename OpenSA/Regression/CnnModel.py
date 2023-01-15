@@ -10,6 +10,7 @@ from collections.abc import Iterable
     层组成。每个卷积层都由卷积操作、批标准化和 ReLU 激活函数组成。 
 """
 
+
 class ConvNet(nn.Module):
     def __init__(self):
         super(ConvNet, self).__init__()
@@ -144,6 +145,88 @@ class DeepSpectra(nn.Module):
     def forward(self, x):
         x = self.conv1(x)
         x = self.Inception(x)
+        x = x.view(x.size(0), -1)
+        x = self.fc(x)
+
+        return x
+
+
+class SpectraCNN(nn.Module):
+    """
+    实例化模型
+    model = SpectraCNN()
+
+    损失函数和优化器
+    criterion = nn.MSELoss()
+    optimizer = torch.optim.Adam(model.parameters(), lr=0.001, weight_decay=0.001)
+
+    训练模型
+    for epoch in range(EPOCH):
+        for data in train_loader:
+            inputs, labels = data
+            inputs = inputs.unsqueeze(1) # 增加一维，因为CNN输入需要4维
+            inputs, labels = inputs.to(device), labels.to(device)
+            optimizer.zero_grad()
+            outputs = model(inputs)
+            loss = criterion(outputs, labels)
+            loss.backward()
+            optimizer.step()
+    # 每个epoch结束后输出loss
+    print("Epoch: {}, Loss: {:.4f}".format(epoch+1, loss.item()))
+
+    测试模型
+    with torch.no_grad():
+        correct = 0
+        total = 0
+        for data in test_loader:
+            inputs, labels = data
+            inputs = inputs.unsqueeze(1)
+            inputs, labels = inputs.to(device), labels.to(device)
+            outputs = model(inputs)
+            _, predicted = torch.max(outputs.data, 1)
+            total += labels.size(0)
+            correct += (predicted == labels).sum().item()
+        print("Accuracy: {:.2f}%".format(100 * correct / total))
+    """
+    def __init__(self):
+        super(SpectraCNN, self).__init__()
+
+        # Input layer
+        self.conv1 = nn.Conv1d(in_channels=1, out_channels=16, kernel_size=3, padding=1)
+        self.bn1 = nn.BatchNorm1d(16)
+        self.pool1 = nn.MaxPool1d(kernel_size=2)
+        self.dropout1 = nn.Dropout(p=0.25)
+
+        # Hidden layer 1
+        self.conv2 = nn.Conv1d(in_channels=16, out_channels=32, kernel_size=3, padding=1)
+        self.bn2 = nn.BatchNorm1d(32)
+        self.pool2 = nn.MaxPool1d(kernel_size=2)
+        self.dropout2 = nn.Dropout(p=0.25)
+
+        # Hidden layer 2
+        self.conv3 = nn.Conv1d(in_channels=32, out_channels=64, kernel_size=3, padding=1)
+        self.bn3 = nn.BatchNorm1d(64)
+        self.pool3 = nn.MaxPool1d(kernel_size=2)
+        self.dropout3 = nn.Dropout(p=0.25)
+
+        # Output layer
+        self.fc = nn.Linear(in_features=64, out_features=1)
+
+    def forward(self, x):
+        x = self.conv1(x)
+        x = self.bn1(x)
+        x = self.pool1(x)
+        x = self.dropout1(x)
+        x = self.conv2(x)
+        x = self.bn2(x)
+        x = self.pool2(x)
+        x = self.dropout2(x)
+
+        x = self.conv3(x)
+        x = self.bn3(x)
+        x = self.pool3(x)
+        x = self.dropout3(x)
+
         x = x.view(x.size(0), -1)
         x = self.fc(x)
 

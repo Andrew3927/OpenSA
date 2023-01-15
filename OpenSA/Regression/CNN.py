@@ -93,7 +93,16 @@ def ZspPocessnew(X_train, X_test, y_train, y_test, need=True): #True:需要标�
 
 
 def CNNTrain(NetType, X_train, X_test, y_train, y_test, EPOCH):
-
+    """
+    CNN模型训练函数
+    :param NetType: 模型类型，包括'ConNet'，'AlexNet'，'DeepSpectra'
+    :param X_train: 训练数据
+    :param X_test: 测试数据
+    :param y_train: 训练标签
+    :param y_test: 测试标签
+    :param EPOCH: 迭代次数
+    :return: None
+    """
 
     data_train, data_test = ZspPocessnew(X_train, X_test, y_train, y_test, need=True)
     # data_train, data_test = ZPocess(X_train, X_test, y_train, y_test)
@@ -107,15 +116,17 @@ def CNNTrain(NetType, X_train, X_test, y_train, y_test, EPOCH):
         model = AlexNet().to(device)
     elif NetType == 'DeepSpectra':
         model = DeepSpectra().to(device)
+    elif NetType == 'SpectraCNN':
+        model = SpectraCNN().to(device)
 
 
 
     criterion = nn.MSELoss().to(device)  # 损失函数为焦损函数，多用于类别不平衡的多分类问题
-    optimizer = optim.Adam(model.parameters(), lr=LR)#,  weight_decay=0.001)  # 优化方式为mini-batch momentum-SGD，并采用L2正则化（权重衰减）
+    # optimizer = optim.Adam(model.parameters(), lr=LR)#,  weight_decay=0.001)  # 优化方式为mini-batch momentum-SGD，并采用L2正则化（权重衰减）
+    optimizer = torch.optim.Adam(model.parameters(), lr=0.001, weight_decay=0.001)
     # # initialize the early_stopping object
     scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, 'min', factor=0.5, verbose=1, eps=1e-06,
                                                            patience=20)
-
 
     print("Start Training!\n")  # 定义遍历数据集的次数
     # to track the training loss as the model trains

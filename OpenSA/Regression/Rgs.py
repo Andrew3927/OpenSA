@@ -53,7 +53,7 @@ def QuantitativeAnalysis(model, X_train, X_test, y_train, y_test):
     elif model == "ELM":
         Rmse, R2, Mae = ELM(X_train, X_test, y_train, y_test)
     elif model == "CNN":
-        Rmse, R2, Mae = CNNTrain("AlexNet", X_train, X_test, y_train, y_test, 5)
+        Rmse, R2, Mae = CNNTrain("SpectraCNN", X_train, X_test, y_train, y_test, 5)
     else:
         print("no this model of QuantitativeAnalysis")
 
