@@ -186,10 +186,12 @@ def CNNTrain(NetType, X_train, X_test, y_train, y_test, EPOCH):
 
     ##################### 将 训练时的loss 打印出来 #######################
     print("\n\nThe loss data of %d iterations has been recorded." % (np.array(train_losses).shape[0]))
+    plt.rcParams['agg.path.chunksize'] = 100000
     plt.plot(train_losses)
     plt.xlabel("Iterations")
     plt.ylabel("Training loss")
     plt.title("CNN Training Loss")
+    plt.savefig("cnn_training_loss.png", dpi=300)
     plt.show()
     ############################################################
 
