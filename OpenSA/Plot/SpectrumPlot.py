@@ -4,9 +4,9 @@ import numpy as np
 
 # def plotspc(data, title):
 def plotspc(title):
-    CDataPath1 = '../Data/Rgs/Cdata1.csv'
-    VDataPath1 = '../Data/Rgs/Vdata1.csv'
-    TDataPath1 = '../Data/Rgs/Tdata1.csv'
+    CDataPath1 = './Data/Rgs/Cdata1.csv'
+    VDataPath1 = './Data/Rgs/Vdata1.csv'
+    TDataPath1 = './Data/Rgs/Tdata1.csv'
     Cdata1 = np.loadtxt(open(CDataPath1, 'rb'), dtype=np.float64, delimiter=',', skiprows=0)
     Vdata1 = np.loadtxt(open(VDataPath1, 'rb'), dtype=np.float64, delimiter=',', skiprows=0)
     Tdata1 = np.loadtxt(open(TDataPath1, 'rb'), dtype=np.float64, delimiter=',', skiprows=0)
