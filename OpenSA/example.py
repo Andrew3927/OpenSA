@@ -67,7 +67,7 @@ def SpectralQuantitativeAnalysis(data, label, ProcessMethods, FslecetedMethods, 
     :param ProcessMethods: string, 预处理的方法, 具体可以看预处理模块
     :param FslecetedMethods: string, 光谱波长筛选的方法, 提供UVE、SPA、Lars、Cars、Pca
     :param SetSplitMethods: string, 划分数据集的方法, 提供随机划分、KS划分、SPXY划分
-    :param model: string, 定量分析模型, 包括ANN、PLS、SVR、ELM、CNN、SAE等，后续会不断补充完整
+    :param model: string, 定量分析模型, 包括ANN、Pls、SVR、ELM、CNN、SAE等，后续会不断补充完整
     :return: Rmse: float, Rmse回归误差评估指标
              R2: float, 回归拟合,
              Mae: float, Mae回归误差评估指标
