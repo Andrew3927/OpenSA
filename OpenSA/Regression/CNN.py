@@ -250,8 +250,3 @@ def CNNTrain(NetType, X_train, X_test, y_train, y_test, EPOCH):
     ############################################################
 
     return avgrmse, avgr2, avgmae
-
-#
-# def CNN(X_train, X_test, y_train, y_test, BATCH_SIZE, n_epochs):
-#
-#     CNNTrain(X_train, X_test, y_train, y_test,BATCH_SIZE,n_epochs)
