@@ -110,7 +110,8 @@ if __name__ == '__main__':
 
     # 载入原始数据并可视化
     data2, label2 = LoadNirtest('Rgs')
-    plotspc(data2, "raw specturm")
+    # plotspc(data2, "raw specturm")
+    plotspc(title="raw specturm")
     # 光谱定量分析演示
     # 示意1: 预处理算法:MSC , 波长筛选算法: Uve, 数据集划分:KS, 定性分量模型: SVR
     RMSE, R2, MAE = SpectralQuantitativeAnalysis(data2, label2, "None", "None", "random", "Pls")
