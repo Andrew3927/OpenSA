@@ -26,6 +26,7 @@ from datetime import datetime
 from Evaluate.RgsEvaluate import ModelRgsevaluate, ModelRgsevaluatePro
 import matplotlib.pyplot as plt
 from tqdm import tqdm
+from Regression.CnnModel import ConvNet, AlexNet, DeepSpectra, SpectraCNN
 
 LR = 0.001
 BATCH_SIZE = 16
@@ -90,37 +91,22 @@ def ZspPocessnew(X_train, X_test, y_train, y_test, need=True):  # True:需要标
 
 # 使用字典映射调用函数
 net_dict = {
-    'ConNet': ConNet,
+    'ConvNet': ConvNet,
     'AlexNet': AlexNet,
     'DeepSpectra': DeepSpectra,
     'SpectraCNN': SpectraCNN
 }
 
-# lossFunction_dict = {
-#     'MSELoss': MSELoss,
-#     'L1Loss': L1Loss,
-#     'CrossEntropyLoss': CrossEntropyLoss,
-#     'NLLLoss': NLLLoss,
-#     'PoissonNLLLoss': PoissonNLLLoss,
-#     'KLDivLoss': KLDivLoss
-# }
 
-
-def CNNTrain(NetType, X_train, X_test, y_train, y_test, EPOCH, lossFunction):
+def CNNTrain(NetType, X_train, X_test, y_train, y_test, EPOCH):
     """
     CNN模型训练函数
-    :param NetType: 模型类型，包括'ConNet'，'AlexNet'，'DeepSpectra', 'SpectraCNN'
+    :param NetType: 模型类型，包括'ConvNet'，'AlexNet'，'DeepSpectra', 'SpectraCNN'
     :param X_train: 训练数据
     :param X_test: 测试数据
     :param y_train: 训练标签
     :param y_test: 测试标签
     :param EPOCH: 迭代次数
-    :param lossFunction: nn.MSELoss: 均方误差损失函数，用于回归问题
-        nn.L1Loss: 平均绝对误差损失函数，常用于回归问题
-        nn.CrossEntropyLoss: 交叉熵损失函数，常用于分类问题
-        nn.NLLLoss: 对数似然损失函数，常用于自然语言处理问题
-        nn.PoissonNLLLoss: Poisson对数似然损失函数，常用于回归问题
-        nn.KLDivLoss: Kullback-Leibler散度损失函数，常用于自然语言处理问题
     :return: None
     """
 
@@ -133,11 +119,67 @@ def CNNTrain(NetType, X_train, X_test, y_train, y_test, EPOCH, lossFunction):
     # 通过使用字典映射的方法使得函数调用避免使用过多地if-else判断
     model = net_dict[NetType]().to(device)
 
+    """
+    以下是可供选择的loss function，用于调参。
+    这里推荐使用nn.MSELoss或者nn.L1Loss，因为在一维光谱问题中，
+    我们需要预测出光谱的强度值，这是一个连续值，用MSE或者L1 loss是最常见的做法。
+    
+    - nn.MSELoss: 均方误差损失函数，用于回归问题
+    - nn.L1Loss: 平均绝对误差损失函数，常用于回归问题
+    - nn.CrossEntropyLoss: 交叉熵损失函数，常用于分类问题
+    - nn.NLLLoss: 对数似然损失函数，常用于自然语言处理问题
+    - nn.PoissonNLLLoss: Poisson对数似然损失函数，常用于回归问题
+    - nn.KLDivLoss: Kullback-Leibler散度损失函数，常用于自然语言处理问题
+    
+        使用 CrossEntropyLoss 注意点：
+            在使用nn.PoissonNLLLoss的时候，log_input=True表示输入
+            的是对数值，full=False表示只计算真实值不为0的部分，eps=1e-08是为了防
+            止除0错误。
+        
+        使用 CrossEntropyLoss, NULLLoss, PoissonNULLoss 注意点：
+            CrossEntropyLoss, NLLLoss, PoissonNLLLoss都是二分类问题的
+            Loss，如果你的问题是多分类问题，可以使用
+            nn.CrossEntropyLoss(ignore_index=-100)来忽略某一个类别。
+            
+        使用 KLDivLoss：
+            当reduction='batchmean'时，在一个batch中，会计算所有样本的KL divergence然后求平均。
+            
+            这样做的目的是为了减少每个样本对最终loss的贡献，使得loss更加稳定。当
+            然如果你不需要这样做，可以将reduction设置为None。
+        
+    """
+    ################################# Loss Functions ###################################
     criterion = nn.MSELoss().to(device)  # 损失函数为焦损函数，多用于类别不平衡的多分类问题
+    # criterion = nn.L1Loss.to(device)
+    # criterion = nn.CrossEntropyLoss(ignore_index=-100).to(device)
+    # criterion = nn.PoissonNLLLoss(log_input=True, full=False, eps=1e-08).to(device)
+    # criterion = nn.KLDivLoss(reduction='batchmean').to(device)
+    ################################# Loss Functions ###################################
+
+
+    """
+    以下提供了一些可替换的优化器，用于调参。
+    
+    需要注意的是每个优化器都有自己的默认参数值，在实际使用中可能需要根据
+    实际情况进行微调。
+    """
+    ################################### Optimizers #####################################
     # optimizer = optim.Adam(model.parameters(), lr=LR)#,  weight_decay=0.001)  # 优化方式为mini-batch momentum-SGD，并采用L2正则化（权重衰减）
     optimizer = optim.Adam(model.parameters(), lr=0.001, weight_decay=0.001)
+    # optimizer = torch.optim.SGD(model.parameters(), lr=0.01, momentum=0.9)
+    # optimizer = torch.optim.Adagrad(model.parameters(), lr=0.01)
+    # optimizer = torch.optim.Adadelta(model.parameters())
+    # optimizer = torch.optim.RMSprop(model.parameters(), lr=0.01, alpha=0.99)
+    # optimizer = torch.optim.Adamax(model.parameters(), lr=0.002, betas=(0.9, 0.999))
+    # optimizer = torch.optim.LBFGS(model.parameters(), lr=0.01)
+    ################################### Optimizers #####################################
+
     # # initialize the early_stopping object
-    scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, 'min', factor=0.5, verbose=1, eps=1e-06,
+    scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer,
+                                                           'min',
+                                                           factor=0.5,
+                                                           verbose=1,
+                                                           eps=1e-06,
                                                            patience=20)
 
     print("Start Training!\n")  # 定义遍历数据集的次数
@@ -145,7 +187,7 @@ def CNNTrain(NetType, X_train, X_test, y_train, y_test, EPOCH, lossFunction):
 
     train_losses = []
     for epoch in range(EPOCH):
-        model.train()  # 不训练
+        model.train()  # 将模型置于训练状态，Pytorch会在向前传播时自动计算梯度。
         train_rmse = []
         train_r2 = []
         train_mae = []
