@@ -1,4 +1,3 @@
-
 from sklearn.cross_decomposition import PLSRegression
 from sklearn.neural_network import MLPRegressor
 import hpelm
@@ -24,8 +23,9 @@ import hpelm
 
 from sklearn.svm import SVR
 from Evaluate.RgsEvaluate import ModelRgsevaluate
-def Pls( X_train, X_test, y_train, y_test):
 
+
+def Pls(X_train, X_test, y_train, y_test):
     model = PLSRegression(n_components=8)
     # fit the model
     model.fit(X_train, y_train)
@@ -39,8 +39,6 @@ def Pls( X_train, X_test, y_train, y_test):
 
 
 def Svregression(X_train, X_test, y_train, y_test):
-
-
     model = SVR(C=2, gamma=1e-07, kernel='linear')
     model.fit(X_train, y_train)
 
@@ -50,8 +48,8 @@ def Svregression(X_train, X_test, y_train, y_test):
 
     return Rmse, R2, Mae
 
-def Anngression(X_train, X_test, y_train, y_test):
 
+def Anngression(X_train, X_test, y_train, y_test):
     # MAX_ITER = 400
     MAX_ITER = 600
     model = MLPRegressor(
@@ -68,15 +66,13 @@ def Anngression(X_train, X_test, y_train, y_test):
 
     return Rmse, R2, Mae
 
-def ELM(X_train, X_test, y_train, y_test):
 
+def ELM(X_train, X_test, y_train, y_test):
     model = hpelm.ELM(X_train.shape[1], 1)
     model.add_neurons(20, 'sigm')
 
-
     model.train(X_train, y_train, 'r')
     y_pred = model.predict(X_test)
-
 
     Rmse, R2, Mae = ModelRgsevaluate(y_pred, y_test)
 

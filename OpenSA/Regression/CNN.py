@@ -18,40 +18,38 @@ from torch.autograd import Variable
 from torch.utils.data import Dataset
 import torchvision
 import torch.nn.functional as F
-from sklearn.preprocessing import scale,MinMaxScaler,Normalizer,StandardScaler
+from sklearn.preprocessing import scale, MinMaxScaler, Normalizer, StandardScaler
 import torch.optim as optim
 from Regression.CnnModel import ConvNet, DeepSpectra, AlexNet, SpectraCNN
 import os
 from datetime import datetime
 from Evaluate.RgsEvaluate import ModelRgsevaluate, ModelRgsevaluatePro
-import matplotlib.pyplot  as plt
+import matplotlib.pyplot as plt
 from tqdm import tqdm
-
 
 LR = 0.001
 BATCH_SIZE = 16
 TBATCH_SIZE = 240
 
-
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-#自定义加载数据集
+
+# 自定义加载数据集
 class MyDataset(Dataset):
-    def __init__(self,specs,labels):
+    def __init__(self, specs, labels):
         self.specs = specs
         self.labels = labels
 
     def __getitem__(self, index):
-        spec,target = self.specs[index],self.labels[index]
-        return spec,target
+        spec, target = self.specs[index], self.labels[index]
+        return spec, target
 
     def __len__(self):
         return len(self.specs)
 
 
-
 ###定义是否需要标准化
-def ZspPocessnew(X_train, X_test, y_train, y_test, need=True): #True:需要标准化，Flase：不需要标准化
+def ZspPocessnew(X_train, X_test, y_train, y_test, need=True):  # True:需要标准化，Flase：不需要标准化
 
     global standscale
     global yscaler
@@ -61,7 +59,7 @@ def ZspPocessnew(X_train, X_test, y_train, y_test, need=True): #True:需要标�
         X_train_Nom = standscale.fit_transform(X_train)
         X_test_Nom = standscale.transform(X_test)
 
-        #yscaler = StandardScaler()
+        # yscaler = StandardScaler()
         yscaler = MinMaxScaler()
         y_train = yscaler.fit_transform(y_train.reshape(-1, 1))
         y_test = yscaler.transform(y_test.reshape(-1, 1))
@@ -73,7 +71,7 @@ def ZspPocessnew(X_train, X_test, y_train, y_test, need=True): #True:需要标�
         data_train = MyDataset(X_train_Nom, y_train)
         data_test = MyDataset(X_test_Nom, y_test)
         return data_train, data_test
-    elif((need == False)):
+    elif ((need == False)):
         yscaler = StandardScaler()
         # yscaler = MinMaxScaler()
 
@@ -90,17 +88,39 @@ def ZspPocessnew(X_train, X_test, y_train, y_test, need=True): #True:需要标�
         return data_train, data_test
 
 
+# 使用字典映射调用函数
+net_dict = {
+    'ConNet': ConNet,
+    'AlexNet': AlexNet,
+    'DeepSpectra': DeepSpectra,
+    'SpectraCNN': SpectraCNN
+}
+
+# lossFunction_dict = {
+#     'MSELoss': MSELoss,
+#     'L1Loss': L1Loss,
+#     'CrossEntropyLoss': CrossEntropyLoss,
+#     'NLLLoss': NLLLoss,
+#     'PoissonNLLLoss': PoissonNLLLoss,
+#     'KLDivLoss': KLDivLoss
+# }
 
 
-def CNNTrain(NetType, X_train, X_test, y_train, y_test, EPOCH):
+def CNNTrain(NetType, X_train, X_test, y_train, y_test, EPOCH, lossFunction):
     """
     CNN模型训练函数
-    :param NetType: 模型类型，包括'ConNet'，'AlexNet'，'DeepSpectra'
+    :param NetType: 模型类型，包括'ConNet'，'AlexNet'，'DeepSpectra', 'SpectraCNN'
     :param X_train: 训练数据
     :param X_test: 测试数据
     :param y_train: 训练标签
     :param y_test: 测试标签
     :param EPOCH: 迭代次数
+    :param lossFunction: nn.MSELoss: 均方误差损失函数，用于回归问题
+        nn.L1Loss: 平均绝对误差损失函数，常用于回归问题
+        nn.CrossEntropyLoss: 交叉熵损失函数，常用于分类问题
+        nn.NLLLoss: 对数似然损失函数，常用于自然语言处理问题
+        nn.PoissonNLLLoss: Poisson对数似然损失函数，常用于回归问题
+        nn.KLDivLoss: Kullback-Leibler散度损失函数，常用于自然语言处理问题
     :return: None
     """
 
@@ -110,16 +130,8 @@ def CNNTrain(NetType, X_train, X_test, y_train, y_test, EPOCH):
     train_loader = torch.utils.data.DataLoader(data_train, batch_size=BATCH_SIZE, shuffle=True)
     test_loader = torch.utils.data.DataLoader(data_test, batch_size=TBATCH_SIZE, shuffle=True)
 
-    if NetType == 'ConNet':
-        model = ConvNet().to(device)
-    elif NetType == 'AlexNet':
-        model = AlexNet().to(device)
-    elif NetType == 'DeepSpectra':
-        model = DeepSpectra().to(device)
-    elif NetType == 'SpectraCNN':
-        model = SpectraCNN().to(device)
-
-
+    # 通过使用字典映射的方法使得函数调用避免使用过多地if-else判断
+    model = net_dict[NetType]().to(device)
 
     criterion = nn.MSELoss().to(device)  # 损失函数为焦损函数，多用于类别不平衡的多分类问题
     # optimizer = optim.Adam(model.parameters(), lr=LR)#,  weight_decay=0.001)  # 优化方式为mini-batch momentum-SGD，并采用L2正则化（权重衰减）
@@ -158,7 +170,7 @@ def CNNTrain(NetType, X_train, X_test, y_train, y_test, EPOCH):
         avgrmse = np.mean(train_rmse)
         avgr2 = np.mean(train_r2)
         avgmae = np.mean(train_mae)
-        print('Epoch:{}, TRAIN:rmse:{}, R2:{}, mae:{}'.format((epoch+1), (avgrmse), (avgr2), (avgmae)))
+        print('Epoch:{}, TRAIN:rmse:{}, R2:{}, mae:{}'.format((epoch + 1), (avgrmse), (avgr2), (avgmae)))
         print('lr:{}, avg_train_loss:{}'.format((optimizer.param_groups[0]['lr']), avg_train_loss))
 
         with torch.no_grad():  # 无梯度
@@ -178,9 +190,9 @@ def CNNTrain(NetType, X_train, X_test, y_train, y_test, EPOCH):
                 test_r2.append(R2)
                 test_mae.append(mae)
             avgrmse = np.mean(test_rmse)
-            avgr2   = np.mean(test_r2)
+            avgr2 = np.mean(test_r2)
             avgmae = np.mean(test_mae)
-            print('EPOCH：{}, TEST: rmse:{}, R2:{}, mae:{}\n'.format((epoch+1), (avgrmse), (avgr2), (avgmae)))
+            print('EPOCH：{}, TEST: rmse:{}, R2:{}, mae:{}\n'.format((epoch + 1), (avgrmse), (avgr2), (avgmae)))
             # 将每次测试结果实时写入acc.txt文件中
             scheduler.step(rmse)
 
@@ -191,21 +203,11 @@ def CNNTrain(NetType, X_train, X_test, y_train, y_test, EPOCH):
     plt.xlabel("Iterations")
     plt.ylabel("Training loss")
     plt.title("CNN Training Loss")
-    plt.savefig("cnn_training_loss.png", dpi=300) # matplotlib 将画出来的图片保存在本地，并且清晰度未300dpi
+    plt.savefig("cnn_training_loss.png", dpi=300)  # matplotlib 将画出来的图片保存在本地，并且清晰度未300dpi
     plt.show()
     ############################################################
 
     return avgrmse, avgr2, avgmae
-
-
-
-
-
-
-
-
-
-
 
 #
 # def CNN(X_train, X_test, y_train, y_test, BATCH_SIZE, n_epochs):
