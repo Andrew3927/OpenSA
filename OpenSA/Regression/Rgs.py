@@ -52,8 +52,8 @@ def QuantitativeAnalysis(model, X_train, X_test, y_train, y_test):
         Rmse, R2, Mae = Svregression(X_train, X_test, y_train, y_test)
     elif model == "ELM":
         Rmse, R2, Mae = ELM(X_train, X_test, y_train, y_test)
-    elif model == "CNN":
-        Rmse, R2, Mae = CNNTrain("SpectraCNN", X_train, X_test, y_train, y_test, 125)
+    elif model[0:4] == "CNN_":
+        Rmse, R2, Mae = CNNTrain(model[4:], X_train, X_test, y_train, y_test, 125)
     else:
         print("no this model of QuantitativeAnalysis")
 
