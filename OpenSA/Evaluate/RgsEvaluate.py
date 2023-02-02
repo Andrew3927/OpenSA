@@ -1,21 +1,9 @@
 """
-    -*- coding: utf-8 -*-
-    @Time   :2022/04/12 17:10
-    @Author : Pengyou FU
-    @blogs  : https://blog.csdn.net/Echo_Code?spm=1000.2115.3001.5343
-    @github : https://github.com/FuSiry/OpenSA
-    @WeChat : Fu_siry
-    @License：Apache-2.0 license
-
-"""
-
-"""
     这些代码主要是实现了几种不同的数据预处理方法（MinMaxScaler、
     Normalizer、StandardScaler）和一种神经网络模型（MLPRegressor）
     的使用。其中主要包括了对于预测结果进行评估的函数，在评估中主要用到了
     均方根误差、R平方和平均绝对误差这三种指标来评估预测结果的准确性。
 """
-
 from sklearn.preprocessing import scale,MinMaxScaler,Normalizer,StandardScaler
 from sklearn.metrics import mean_squared_error,r2_score,mean_absolute_error
 from sklearn.neural_network import MLPRegressor

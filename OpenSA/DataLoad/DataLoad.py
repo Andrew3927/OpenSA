@@ -1,15 +1,4 @@
 """
-    -*- coding: utf-8 -*-
-    @Time   :2022/04/12 17:10
-    @Author : Pengyou FU
-    @blogs  : https://blog.csdn.net/Echo_Code?spm=1000.2115.3001.5343
-    @github : https://github.com/FuSiry/OpenSA
-    @WeChat : Fu_siry
-    @License：Apache-2.0 license
-
-"""
-
-"""
     这个代码实现了两种划分数据集的方式：随机划分和基于SPXY算法的划分。
     首先实现了一个随机划分函数，利用sklearn中的train_test_split函数实
     现；其次实现了一个基于SPXY算法的划分函数。这个算法是基于数据和标签之
@@ -17,9 +6,9 @@
 """
 
 
-
 from sklearn.model_selection import train_test_split
 import numpy as np
+import pandas as pd
 
 #随机划分数据集
 def random(data, label, test_ratio=0.2, random_state=123):
@@ -186,6 +175,13 @@ def LoadNirtest(type):
         Nirdata = np.concatenate((Nirdata1, Tdata1))
         data = Nirdata[:, :-4]
         label = Nirdata[:, -1]
+        print(data.shape)
+        print(label.shape)
+        # Nirdata = pd.read_csv('/root/OpenSA/Data/Rgs/LUCAS.SOIL_corr.csv')
+        # data = Nirdata.values[:,:-9]
+        # label = Nirdata.values[:, -7]
+        # print(data.shape)
+        # print(label.shape)
 
     elif type == "Cls":
         path = './/Data//Cls//table.csv'
@@ -196,28 +192,18 @@ def LoadNirtest(type):
     return data, label
 
 def SetSplit(method, data, label, test_size=0.2, randomseed=123):
+
     """
-    数据集划分函数，根据不同的划分方式进行划分。
-    :param method: str
-        划分方式，可选值为 "random"、"spxy"、"ks"。
-    :param data: numpy array, shape (n_samples, n_features)
-        输入的数据，n_samples 是样本数量，n_features 是样本特征数量。
-    :param label: numpy array, shape (n_sample, )
-        数据标签，n_sample 是样本数量。
-    :param test_size: float, optional (default=0.2)
-        测试数据集所占比例。
-    :param randomseed: int, optional (default=123)
-        随机种子。
-    :return:
-        X_train : numpy array, shape (n_samples, n_features)
-        训练数据集。
-        X_test : numpy array, shape (n_samples, n_features)
-            测试数据集。
-        y_train : numpy array, shape (n_sample, )
-            训练数据标签。
-        y_test : numpy array, shape (n_sample, )
-            测试数据标签。
+    :param method: the method to split trainset and testset, include: random, kennard-stone(ks), spxy
+    :param data: shape (n_samples, n_features)
+    :param label: shape (n_sample, )
+    :param test_size: the ratio of test_size, default: 0.2
+    :return: X_train: (n_samples, n_features)
+             X_test: (n_samples, n_features)
+             y_train: (n_sample, )
+             y_test: (n_sample, )
     """
+
     if method == "random":
         X_train, X_test, y_train, y_test = random(data, label, test_size, randomseed)
     elif method == "spxy":

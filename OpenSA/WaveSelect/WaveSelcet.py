@@ -1,15 +1,4 @@
 """
-    -*- coding: utf-8 -*-
-    @Time   :2022/04/12 17:10
-    @Author : Pengyou FU
-    @blogs  : https://blog.csdn.net/Echo_Code?spm=1000.2115.3001.5343
-    @github : https://github.com/FuSiry/OpenSA
-    @WeChat : Fu_siry
-    @License：Apache-2.0 license
-
-"""
-
-"""
     这段代码实现了光谱数据的波长筛选/降维功能。其中使用了几种不同的方法，
     包括：Cars, Lars, Uve, Spa, Pca, GA。用户可以通过传入不同的参数来
     调用相应的筛选/降维方法，最后返回筛选/降维后的光谱数据以及对应的标签。

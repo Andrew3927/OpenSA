@@ -1,29 +1,16 @@
-"""
-    -*- coding: utf-8 -*-
-    @Time   :2022/04/12 17:10
-    @Author : Pengyou FU
-    @blogs  : https://blog.csdn.net/Echo_Code?spm=1000.2115.3001.5343
-    @github :
-    @WeChat : Fu_siry
-    @License：
-
-"""
 
 """
     这段代码主要是实现了一些处理光谱数据的预处理方法，包括最大最小值
     归一化(MMS)，标准化(SS)，均值中心化(CT)，标准正态变换(SNV)和移动
     平均平滑(MA)。这些方法都是常用于光谱数据预处理的方法。
 """
+
 import numpy as np
 from scipy import signal
 from sklearn.linear_model import LinearRegression
 from sklearn.preprocessing import MinMaxScaler, StandardScaler
 from copy import deepcopy
 import pandas as pd
-#import pywt
-
-# ref1: 湖南示范大学同学实列，并做了部分修改
-# ref2: https://blog.csdn.net/qq2512446791
 
 # 最大最小值归一化
 def MMS(data):

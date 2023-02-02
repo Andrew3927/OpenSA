@@ -1,16 +1,3 @@
-"""
-    Create on 2021-1-21
-    Author：Pengyou Fu
-    Describe：this for train NIRS with use 1-D Resnet model to transfer
-"""
-
-"""
-    这段代码主要实现了利用1-D Resnet模型进行NIRS预测的训练过程。
-    代码包括了自定义数据加载，标准化处理，模型训练，训练结果评估等过程。
-    其中定义了一个函数CNNTrain，该函数通过输入模型类型，训练数据，测试数
-    据，训练标签，测试标签和训练轮数来进行模型训练。
-"""
-
 import numpy as np
 import torch
 import torch.nn as nn
@@ -20,20 +7,19 @@ import torchvision
 import torch.nn.functional as F
 from sklearn.preprocessing import scale,MinMaxScaler,Normalizer,StandardScaler
 import torch.optim as optim
-from Regression.CnnModel import ConvNet, DeepSpectra, AlexNet, SpectraCNN
+from Regression.CnnModel import DeepSpectra, AlexNet,Resnet,DenseNet
 import os
 from datetime import datetime
 from Evaluate.RgsEvaluate import ModelRgsevaluate, ModelRgsevaluatePro
 import matplotlib.pyplot  as plt
-from tqdm import tqdm
-
+from Plot.plot import nirplot_eva_epoch,nirplot_eva_iterations
 
 LR = 0.001
 BATCH_SIZE = 16
 TBATCH_SIZE = 240
 
 
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+# device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 #自定义加载数据集
 class MyDataset(Dataset):
@@ -89,54 +75,74 @@ def ZspPocessnew(X_train, X_test, y_train, y_test, need=True): #True:需要标�
 
         return data_train, data_test
 
+#四种结构都齐全了，从上到下依次是纵向结构、横向结构、残差结构、稠密结构，可以在Rgs那个文件那里用
+net_dict = {
+    'vgg': AlexNet,
+    'inception': DeepSpectra,
+    'Resnet': Resnet,
+    'DenseNet': DenseNet,
+}
 
 
+loss_dict={
+    'MSE': nn.MSELoss(),
+    'L1': nn.L1Loss(),
+    'CrossEntropy': nn.CrossEntropyLoss(ignore_index=-100),
+    'Poisson': nn.PoissonNLLLoss(log_input=True, full=False, eps=1e-08),
+    'KLDiv': nn.KLDivLoss(reduction='batchmean'),
 
-def CNNTrain(NetType, X_train, X_test, y_train, y_test, EPOCH):
-    """
-    CNN模型训练函数
-    :param NetType: 模型类型，包括'ConNet'，'AlexNet'，'DeepSpectra'
-    :param X_train: 训练数据
-    :param X_test: 测试数据
-    :param y_train: 训练标签
-    :param y_test: 测试标签
-    :param EPOCH: 迭代次数
-    :return: None
-    """
+}
+   
+
+def CNNTrain(NetType, X_train, X_test, y_train, y_test, EPOCH,acti,c_num,loss,optim):
+
 
     data_train, data_test = ZspPocessnew(X_train, X_test, y_train, y_test, need=True)
     # data_train, data_test = ZPocess(X_train, X_test, y_train, y_test)
 
     train_loader = torch.utils.data.DataLoader(data_train, batch_size=BATCH_SIZE, shuffle=True)
     test_loader = torch.utils.data.DataLoader(data_test, batch_size=TBATCH_SIZE, shuffle=True)
-
-    if NetType == 'ConNet':
-        model = ConvNet().to(device)
-    elif NetType == 'AlexNet':
-        model = AlexNet().to(device)
-    elif NetType == 'DeepSpectra':
-        model = DeepSpectra().to(device)
-    elif NetType == 'SpectraCNN':
-        model = SpectraCNN().to(device)
-
-
-
-    criterion = nn.MSELoss().to(device)  # 损失函数为焦损函数，多用于类别不平衡的多分类问题
-    # optimizer = optim.Adam(model.parameters(), lr=LR)#,  weight_decay=0.001)  # 优化方式为mini-batch momentum-SGD，并采用L2正则化（权重衰减）
-    optimizer = optim.Adam(model.parameters(), lr=0.001, weight_decay=0.001)
+    # model = net_dict[NetType](acti,c_num).to(device)
+    #这里我还没有完全优化好，只有纵向结构可以传数，其他的需要把acti,c_num删掉
+    model=net_dict[NetType](acti,c_num)
+    device = "cpu"
+    if torch.cuda.is_available():
+        device = "cuda:0"
+        if torch.cuda.device_count() > 1:
+            model=nn.DataParallel(model)
+    model.to(device)
+    
+    criterion = loss_dict[loss].to(device)
+    optim_dict={
+    'Adam': torch.optim.Adam(model.parameters(), lr=0.001, weight_decay=0.001),
+    'SGD': torch.optim.SGD(model.parameters(), lr=0.01, momentum=0.9),
+    'Adagrad': torch.optim.Adagrad(model.parameters(), lr=0.01),
+    'Adadelta': torch.optim.Adadelta(model.parameters()),
+    'RMSprop': torch.optim.RMSprop(model.parameters(), lr=0.01, alpha=0.99),
+    'Adamax': torch.optim.Adamax(model.parameters(), lr=0.002, betas=(0.9, 0.999)),
+    'LBFGS': torch.optim.LBFGS(model.parameters(), lr=0.01),
+    }
     # # initialize the early_stopping object
+    optimizer =optim_dict[optim]
     scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, 'min', factor=0.5, verbose=1, eps=1e-06,
                                                            patience=20)
-
-    print("Start Training!\n")  # 定义遍历数据集的次数
+    print("Start Training!")  # 定义遍历数据集的次数
     # to track the training loss as the model trains
-
     train_losses = []
+    epoch_loss = []
     for epoch in range(EPOCH):
+        # train_losses = []
         model.train()  # 不训练
         train_rmse = []
         train_r2 = []
         train_mae = []
+        avg_loss=[]
+        # y_pred=[]
+        # epo=np.random.rand(10)
+        # epo[epoch]=epoch+1
+        ################### 记录以epoch来记录 loss ###################
+        temp_trainLosses = 0
+        ################### 记录以epoch来记录 loss ###################
         for i, data in enumerate(train_loader):  # gives batch data, normalize x when iterate train_loader
             inputs, labels = data  # 输入和标签都等于data
             inputs = Variable(inputs).type(torch.FloatTensor).to(device)  # batch x
@@ -149,30 +155,41 @@ def CNNTrain(NetType, X_train, X_test, y_train, y_test, EPOCH):
             pred = output.detach().cpu().numpy()
             y_true = labels.detach().cpu().numpy()
             train_losses.append(loss.item())
+            temp_trainLosses = loss.item()
             rmse, R2, mae = ModelRgsevaluatePro(pred, y_true, yscaler)
             # plotpred(pred, y_true, yscaler))
+            avg_train_loss = np.mean(train_losses)
             train_rmse.append(rmse)
             train_r2.append(R2)
             train_mae.append(mae)
-        avg_train_loss = np.mean(train_losses)
+        
+        epoch_loss.append(temp_trainLosses)
         avgrmse = np.mean(train_rmse)
         avgr2 = np.mean(train_r2)
         avgmae = np.mean(train_mae)
         print('Epoch:{}, TRAIN:rmse:{}, R2:{}, mae:{}'.format((epoch+1), (avgrmse), (avgr2), (avgmae)))
         print('lr:{}, avg_train_loss:{}'.format((optimizer.param_groups[0]['lr']), avg_train_loss))
-
+        # avg_train_loss = np.mean(train_losses)
+        # avg_loss[epoch+1]=np.array(avg_train_loss)
+        
+        avg_loss.append(np.array(avg_train_loss))
+        
         with torch.no_grad():  # 无梯度
             model.eval()  # 不训练
             test_rmse = []
             test_r2 = []
             test_mae = []
+            # y_pred=[]
+            # y=[]
             for i, data in enumerate(test_loader):
                 inputs, labels = data  # 输入和标签都等于data
                 inputs = Variable(inputs).type(torch.FloatTensor).to(device)  # batch x
                 labels = Variable(labels).type(torch.FloatTensor).to(device)  # batch y
                 outputs = model(inputs)  # 输出等于进入网络后的输入
                 pred = outputs.detach().cpu().numpy()
+                # y_pred.append(pred.astype(int))
                 y_true = labels.detach().cpu().numpy()
+                # y.append(y_true.astype(int))
                 rmse, R2, mae = ModelRgsevaluatePro(pred, y_true, yscaler)
                 test_rmse.append(rmse)
                 test_r2.append(R2)
@@ -180,21 +197,20 @@ def CNNTrain(NetType, X_train, X_test, y_train, y_test, EPOCH):
             avgrmse = np.mean(test_rmse)
             avgr2   = np.mean(test_r2)
             avgmae = np.mean(test_mae)
-            print('EPOCH：{}, TEST: rmse:{}, R2:{}, mae:{}\n'.format((epoch+1), (avgrmse), (avgr2), (avgmae)))
+            print('EPOCH：{}, TEST: rmse:{}, R2:{}, mae:{}'.format((epoch+1), (avgrmse), (avgr2), (avgmae)))
             # 将每次测试结果实时写入acc.txt文件中
             scheduler.step(rmse)
+        
+        
+        
 
-    ##################### 将 训练时的loss 打印出来 #######################
-    print("\n\nThe loss data of %d iterations has been recorded." % (np.array(train_losses).shape[0]))
-    plt.rcParams['agg.path.chunksize'] = 100000
-    plt.plot(train_losses)
-    plt.xlabel("Iterations")
-    plt.ylabel("Training loss")
-    plt.title("CNN Training Loss")
-    plt.savefig("cnn_training_loss.png", dpi=300)
-    plt.show()
-    ############################################################
-
+    # nirplot_eva(y,y_pred)
+    # print(np.array(avg_loss).shape)
+    # print(epo)
+    # print("\n\nThe loss data of %d iterations has been recorded." % (np.array(train_losses).shape[0]))
+    # nirplot_eva_iterations(train_losses)
+    # nirplot_eva_epoch(epoch_loss)
+    
     return avgrmse, avgr2, avgmae
 
 
