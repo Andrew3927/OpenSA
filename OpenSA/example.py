@@ -51,7 +51,7 @@ from AutoTune.AutoTuneConfig import autoTuneMain
 # 光谱定量分析
 def SpectralQuantitativeAnalysis(data, label, ProcessMethods,
                                  FslecetedMethods, SetSplitMethods,
-                                 model, EPOCH, acti, cnn_depth, loss, optim, is_autoTune, autoHyperConfig):
+                                 model, EPOCH, acti, cnn_depth, loss, optim):
     """
 
     :param is_autoTune:
@@ -77,8 +77,7 @@ def SpectralQuantitativeAnalysis(data, label, ProcessMethods,
     featureData, labels = SpctrumFeatureSelcet(FslecetedMethods, processedData, label)
     X_train, X_test, y_train, y_test = SetSplit(SetSplitMethods, featureData, labels, test_size=0.2, randomseed=123)
     QuantitativeAnalysis(model, X_train, X_test, y_train, y_test, EPOCH,
-                         acti, cnn_depth, loss, optim, is_autoTune=is_autoTune,
-                         autoHyperConfig=autoHyperConfig)
+                         acti, cnn_depth, loss, optim)
 
 if __name__ == '__main__':
     # 载入原始数据并可视化
@@ -123,6 +122,4 @@ if __name__ == '__main__':
                                      ProcessMethods="MMS", FslecetedMethods="None",
                                      SetSplitMethods="random",
                                      model="CNN_vgg", EPOCH=3, acti='relu',
-                                     cnn_depth=5, loss='MSE', optim='SGD',
-                                     is_autoTune=False,
-                                     autoHyperConfig=SEARCH_SPACE)
+                                     cnn_depth=5, loss='MSE', optim='SGD')

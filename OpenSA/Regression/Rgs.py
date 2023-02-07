@@ -41,7 +41,7 @@ loss_dict = {
 
 
 def QuantitativeAnalysis(model, X_train, X_test, y_train, y_test, EPOCH, acti, cnn_depth,
-                         loss, optim, is_autoTune, autoHyperConfig):
+                         loss, optim):
     # 使用传统的推理模型
     if model in tradic_net_dict:
         CL_green_print("Using " + model + " for training ...")
@@ -71,7 +71,7 @@ def QuantitativeAnalysis(model, X_train, X_test, y_train, y_test, EPOCH, acti, c
         loss_func = loss_dict[loss]
         # 打印配置参数
         __printConfiguration(EPOCH=EPOCH, acti_func=acti, cnn_depth=cnn_depth, loss=loss,
-                             optim=optim, is_autoTune=is_autoTune)
+                             optim=optim)
         # 开始训练
         train(network, X_train, X_test, y_train, y_test, EPOCH, loss_func,
               optim_func)
