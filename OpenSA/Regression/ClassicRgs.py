@@ -40,6 +40,7 @@ def Pls(X_train, X_test, y_train, y_test):
     model = 'pls'
     # 设置好调参的系数
     param_grid = {'n_components': np.arange(1, 40)}
+    print("\033[33m" + "使用自动搜参功能，需要花费一些时间 ..." + "\033[0m")
     # 传递给调参模块获得最佳的调参参数下的误差
     Rmse, R2, Mae = Grid(X_train, X_test, y_train, y_test, model, param_grid)
     return Rmse, R2, Mae
@@ -59,6 +60,7 @@ def Svregression(X_train, X_test, y_train, y_test):
     param_grid = {'C': [0.1, 1, 2, 10],
                   'kernel': ['linear', 'rbf'],
                   'gamma': [1e-07, 0.1, 1, 10]}
+    print("\033[33m" + "使用自动搜参功能，需要花费一些时间 ..." + "\033[0m")
     Rmse, R2, Mae = Grid(X_train, X_test, y_train, y_test, model, param_grid)
     return Rmse, R2, Mae
 
@@ -77,6 +79,7 @@ def Anngression(X_train, X_test, y_train, y_test):
                   'activation': ['relu', 'logistic'],
                   'learning_rate_init': [0.001, 0.01, 0.1]}
 
+    print("\033[33m" + "使用自动搜参功能，需要花费一些时间 ..." + "\033[0m")
     Rmse, R2, Mae = Grid(X_train, X_test, y_train, y_test, model, param_grid)
 
     return Rmse, R2, Mae
@@ -115,6 +118,7 @@ def ELM(X_train, X_test, y_train, y_test):
 
     # 创建GridSearchCV对象
     print("使用GridSearchCV进行自动搜索（交叉验证）……")
+    print("\033[33m" + "使用自动搜参功能，需要花费一些时间 ..." + "\033[0m")
     grid_search = GridSearchCV(elm_regressor, param_grid, cv=5, scoring='neg_mean_squared_error')
     print("完成GridSearchCV进行自动搜索（交叉验证）\n")
 

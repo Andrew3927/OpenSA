@@ -3,34 +3,41 @@ import torch.nn as nn
 import torch.nn.functional as F
 from collections.abc import Iterable
 
+import sys
+
 """
     这篇代码主要集成了四种常见的网络结构以及根据这四种结构自定义的模型
 """
 ac_dict = {
     'relu': nn.ReLU,
     'lrelu': nn.LeakyReLU
-
 }
 
-linear = [649, 5184, 5184, 5184, 5120, 5120, 5120, 5120, 4096, 4096]
+LINEAR_PARAMETER = [649, 5184, 5184, 5184, 5120, 5120, 5120, 5120, 4096, 4096]
 
 
 class AlexNet(nn.Module):
-    def __init__(self, acti, c_num):
+    def __init__(self, acti_func, cnn_depth):
         super(AlexNet, self).__init__()
         self.layers = nn.ModuleList([])
         input_channel = 1
         output_channel = 16
-        for i in range(1, c_num):
+        for i in range(1, cnn_depth):
             self.layers.append(nn.Conv1d(input_channel, output_channel, 3, padding=1))
             self.layers.append(nn.BatchNorm1d(num_features=output_channel))
-            self.layers.append(ac_dict[acti](inplace=True))
+            self.layers.append(ac_dict[acti_func](inplace=True))
             self.layers.append(nn.MaxPool1d(2, 2))
             input_channel = output_channel
             output_channel = output_channel * 2
-        # linear[c_num-1]
+
+        if (cnn_depth > len(LINEAR_PARAMETER)):
+            print("\033[1;31;40m" + "AlexNet only supports up to " + len(LINEAR_PARAMETER) + " layers." + "\033[0m")
+            sys.exit()
+
+        linearInput = LINEAR_PARAMETER[cnn_depth - 1]
+
         self.reg = nn.Sequential(
-            nn.Linear(5120, 1000),  # 根据自己数据集修改
+            nn.Linear(linearInput, 1000),  # 根据自己数据集修改
             nn.ReLU(inplace=True),
             nn.Linear(1000, 500),
             nn.ReLU(inplace=True),

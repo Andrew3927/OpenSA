@@ -27,7 +27,7 @@ def Grid(X_train, X_test, y_train, y_test,name,param_grid):
         model=model_dict[name]()
     grid = GridSearchCV(model,param_grid,cv=5)
     grid.fit(X_train, y_train)
-    print("最优参数：\n", grid.best_params_, "\n")
+    print("最优参数：", grid.best_params_, "")
     y_pred = grid.predict(X_test)
     Rmse, R2, Mae = ModelRgsevaluate(y_pred, y_test)
     return Rmse, R2, Mae
