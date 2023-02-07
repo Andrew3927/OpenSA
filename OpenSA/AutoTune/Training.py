@@ -50,6 +50,7 @@ def train(config, checkpoint_dir=None, data_dir=None, loss_func=None, data_wrapU
         STRING_CONFIG.Adamax: torch.optim.Adamax(network.parameters(), lr=config[STRING_CONFIG.lr], betas=(0.9, 0.999)),
         # 'LBFGS': torch.optim.LBFGS(network.parameters(), lr=0.01)
     }
+
     # 设置 模型优化器 (自动超参：模型优化器)
     optimizer = OPTIM_DICT[config[STRING_CONFIG.optimizer]]
     scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer=optimizer,

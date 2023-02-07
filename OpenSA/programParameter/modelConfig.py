@@ -5,3 +5,6 @@ VGG = "CNN_vgg"
 Inception = "CNN_inception"
 ResNet = "CNN_Resnet"
 DenseNet = "CNN_DenseNet等"
+
+relu = 'relu'
+lrelu = 'lrelu'

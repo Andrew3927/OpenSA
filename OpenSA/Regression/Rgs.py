@@ -42,16 +42,20 @@ loss_dict = {
 
 def QuantitativeAnalysis(model, X_train, X_test, y_train, y_test, EPOCH, acti, cnn_depth,
                          loss, optim, is_autoTune, autoHyperConfig):
+    # 使用传统的推理模型
     if model in tradic_net_dict:
         CL_green_print("Using " + model + " for training ...")
         print("Start training")
-        Rmse, R2, Mae = tradic_net_dict[model](X_train, X_test, y_train, y_test)
+        # Rmse, R2, Mae = tradic_net_dict[model](X_train, X_test, y_train, y_test)
+
     elif model[0:3] == "CNN" and model[4:] in NET_DICT:
         network = NET_DICT[model[4:]]
+
         # 初始化网络
         network = network(acti, cnn_depth)
+
         # 使用字典映射调用优化器
-        optim_dict = {
+        OPTIM_DICT = {
             'Adam': torch.optim.Adam(network.parameters(), lr=0.001, weight_decay=0.001),
             'SGD': torch.optim.SGD(network.parameters(), lr=0.01, momentum=0.9),
             # 接下来的激活函数 torch并不支持。
@@ -62,7 +66,7 @@ def QuantitativeAnalysis(model, X_train, X_test, y_train, y_test, EPOCH, acti, c
             # 'LBFGS': torch.optim.LBFGS(network.parameters(), lr=0.01)
         }
         # 设置优化器函数
-        optim_func = optim_dict[optim]
+        optim_func = OPTIM_DICT[optim]
         # 设置 loss 函数
         loss_func = loss_dict[loss]
         # 打印配置参数

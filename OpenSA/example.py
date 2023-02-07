@@ -97,8 +97,9 @@ if __name__ == '__main__':
 
         # 设置环境变量，解决Ray Tune因为CPU检测不准确而给出的warning。
         os.environ['RAY_USE_MULTIPROCESSING_CPU_COUNT'] = '1'
+
         # 设置超参数搜索空间
-        search_space = {
+        SEARCH_SPACE = {
             STRING_CONFIG.cnn_depth: tune.grid_search([1, 2, 3, 4, 5, 6, 7, 8]),
             STRING_CONFIG.epochs: tune.grid_search([10, 20, 30]),  # 具体EPOCHS搜参空间请根据模型的收敛情况判断而定
             STRING_CONFIG.lr: tune.grid_search([.001, .01, .1]),
@@ -106,11 +107,14 @@ if __name__ == '__main__':
             STRING_CONFIG.optimizer: tune.grid_search(["Adam", "SGD", "Adadelta", "RMSprop", "Adamax"]),
             STRING_CONFIG.acti_func: tune.choice(["relu", "lrelu"])
         }
+
         autoTuneMain(num_samples=10, max_num_epochs=10, gpus_per_trial=1, network="CNN_vgg",
                      data=data2, label=label2, ProcessMethods="MMS", FslecetedMethods="None",
                      SetSplitMethods="random", model="CNN_vgg", cnn_depth=5,
-                     loss=STRING_CONFIG.MSE, config=search_space, max_cpu_cores=max_cpu_cores,
+                     loss=STRING_CONFIG.MSE, config=SEARCH_SPACE, max_cpu_cores=max_cpu_cores,
                      trainingBatchSize=TRAINING_BATCH_SIZE, testingBatchSize=TESTING_BATCH_SIZE)
+
+    # 传统的模型训练 & CNN模型（不自动超参）
     else:
         # 光谱定量分析演示
         # 示意1: 预处理算法:MSC , 波长筛选算法: Uve, 数据集划分:KS, 定性分量模型: SVR
@@ -118,7 +122,7 @@ if __name__ == '__main__':
         SpectralQuantitativeAnalysis(data=data2, label=label2,
                                      ProcessMethods="MMS", FslecetedMethods="None",
                                      SetSplitMethods="random",
-                                     model=CNN_vgg, EPOCH=3, acti='relu',
+                                     model="CNN_vgg", EPOCH=3, acti='relu',
                                      cnn_depth=5, loss='MSE', optim='SGD',
                                      is_autoTune=False,
-                                     autoHyperConfig=search_space)
+                                     autoHyperConfig=SEARCH_SPACE)

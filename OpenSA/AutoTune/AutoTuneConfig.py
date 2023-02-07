@@ -88,6 +88,7 @@ def autoTuneMain(num_samples=10, max_num_epochs=10, gpus_per_trial=1, data=None,
         # 'KLDiv': nn.KLDivLoss(reduction='batchmean'),
     }
 
+    # Ray Tune 开始训练模型
     result = tune.run(
         partial(train, data_wrapUp=data_wrapUp, loss_func=nn.MSELoss(), Net=Net,
                 TRAINING_BATCH_SIZE=trainingBatchSize, TESTING_BATCH_SIZE=testingBatchSize),

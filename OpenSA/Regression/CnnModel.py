@@ -1,16 +1,20 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+
 from collections.abc import Iterable
 
 import sys
 
+import programParameter.modelConfig as MODEL_CONFIG
+
+
 """
     这篇代码主要集成了四种常见的网络结构以及根据这四种结构自定义的模型
 """
-ac_dict = {
-    'relu': nn.ReLU,
-    'lrelu': nn.LeakyReLU
+AC_DICT = {
+    MODEL_CONFIG.relu: nn.ReLU,
+    MODEL_CONFIG.lrelu: nn.LeakyReLU
 }
 
 LINEAR_PARAMETER = [649, 5184, 5184, 5184, 5120, 5120, 5120, 5120, 4096, 4096]
@@ -25,7 +29,7 @@ class AlexNet(nn.Module):
         for i in range(1, cnn_depth):
             self.layers.append(nn.Conv1d(input_channel, output_channel, 3, padding=1))
             self.layers.append(nn.BatchNorm1d(num_features=output_channel))
-            self.layers.append(ac_dict[acti_func](inplace=True))
+            self.layers.append(AC_DICT[acti_func](inplace=True))
             self.layers.append(nn.MaxPool1d(2, 2))
             input_channel = output_channel
             output_channel = output_channel * 2
@@ -88,7 +92,7 @@ class Inception(nn.Module):
 
 
 class DeepSpectra(nn.Module):
-    def __init__(self, acti, c_num):
+    def __init__(self, acti, cnn_depth):
         super(DeepSpectra, self).__init__()
         self.conv1 = nn.Sequential(
             nn.Conv1d(1, 16, kernel_size=5, stride=3, padding=0)
@@ -120,13 +124,13 @@ class Bottlrneck(torch.nn.Module):
         self.layer = torch.nn.Sequential(
             torch.nn.Conv1d(In_channel, Med_channel, 1, self.stride),
             torch.nn.BatchNorm1d(Med_channel),
-            ac_dict[acti](inplace=True),
+            AC_DICT[acti](inplace=True),
             torch.nn.Conv1d(Med_channel, Med_channel, 3, padding=1),
             torch.nn.BatchNorm1d(Med_channel),
-            ac_dict[acti](inplace=True),
+            AC_DICT[acti](inplace=True),
             torch.nn.Conv1d(Med_channel, Out_channel, 1),
             torch.nn.BatchNorm1d(Out_channel),
-            ac_dict[acti](inplace=True),
+            AC_DICT[acti](inplace=True),
         )
 
         if In_channel != Out_channel:
@@ -143,7 +147,7 @@ class Bottlrneck(torch.nn.Module):
 
 
 # class Resnet(torch.nn.Module):
-#     def __init__(self,acti,c_num):
+#     def __init__(self,acti,cnn_depth):
 #         super(Resnet, self).__init__()
 #         self.features = torch.nn.Sequential(
 #             torch.nn.Conv1d(1,16,kernel_size=7,stride=2,padding=3),
@@ -156,7 +160,7 @@ class Bottlrneck(torch.nn.Module):
 #         input_channel=64
 #         output_channel=128
 #         med_channel=32
-#         for i in range(1,c_num):
+#         for i in range(1,cnn_depth):
 #             self.layers.append(Bottlrneck(input_channel,med_channel,output_channel,(1==i)|(4==i)|(7==i),acti))
 #             if (1==i)|(4==i)|(7==i):
 #                 input_channel=input_channel*2
@@ -172,7 +176,7 @@ class Bottlrneck(torch.nn.Module):
 
 
 class Resnet(torch.nn.Module):
-    def __init__(self, acti, c_num):
+    def __init__(self, acti, cnn_depth):
         super(Resnet, self).__init__()
         self.features = torch.nn.Sequential(
             torch.nn.Conv1d(1, 64, kernel_size=7, stride=2, padding=3),
@@ -185,7 +189,7 @@ class Resnet(torch.nn.Module):
         input_channel = 256
         output_channel = 512
         med_channel = 128
-        for i in range(1, c_num + 1):
+        for i in range(1, cnn_depth + 1):
             self.layers.append(
                 Bottlrneck(input_channel, med_channel, output_channel, (1 == i) | (4 == i) | (7 == i), acti))
             if (1 == (i % 3)):
@@ -213,10 +217,10 @@ class DenseLayer(torch.nn.Module):
         super(DenseLayer, self).__init__()
         self.layer = torch.nn.Sequential(
             torch.nn.BatchNorm1d(in_channels),
-            ac_dict[acti](inplace=True),
+            AC_DICT[acti](inplace=True),
             torch.nn.Conv1d(in_channels, middle_channels, 1),
             torch.nn.BatchNorm1d(middle_channels),
-            ac_dict[acti](inplace=True),
+            AC_DICT[acti](inplace=True),
             torch.nn.Conv1d(middle_channels, out_channels, 3, padding=1)
         )
 
@@ -237,13 +241,13 @@ class Transition(torch.nn.Sequential):
     def __init__(self, channels, acti):
         super(Transition, self).__init__()
         self.add_module('norm', torch.nn.BatchNorm1d(channels))
-        self.add_module('relu', ac_dict[acti](inplace=True))
+        self.add_module('relu', AC_DICT[acti](inplace=True))
         self.add_module('conv', torch.nn.Conv1d(channels, channels // 2, 3, padding=1))
         self.add_module('Avgpool', torch.nn.AvgPool1d(2))
 
 
 class DenseNet(torch.nn.Module):
-    def __init__(self, acti, c_num):
+    def __init__(self, acti, cnn_depth):
         super(DenseNet, self).__init__()
         layer_num = (6, 12, 24, 16)
         growth_rate = 32
@@ -253,7 +257,7 @@ class DenseNet(torch.nn.Module):
         self.features = torch.nn.Sequential(
             torch.nn.Conv1d(1, self.feature_channel_num, 7, 2, 3),
             torch.nn.BatchNorm1d(self.feature_channel_num),
-            ac_dict[acti](inplace=True),
+            AC_DICT[acti](inplace=True),
             torch.nn.MaxPool1d(3, 2, 1),
         )
         self.DenseBlock1 = DenseBlock(layer_num[0], growth_rate, self.feature_channel_num, acti, middele_channels)
@@ -261,16 +265,16 @@ class DenseNet(torch.nn.Module):
         self.Transition1 = Transition(self.feature_channel_num, acti)
 
         self.layers = nn.ModuleList([])
-        for i in range(1, c_num + 1):
+        for i in range(1, cnn_depth + 1):
             self.layers.append(
                 DenseBlock(layer_num[i], growth_rate, self.feature_channel_num // 2, acti, middele_channels))
             self.feature_channel_num = self.feature_channel_num // 2 + layer_num[i] * growth_rate
-            if (i != c_num):
+            if (i != cnn_depth):
                 self.layers.append(Transition(self.feature_channel_num, acti))
         self.layers.append(torch.nn.AdaptiveAvgPool1d(1))
         self.classifer = torch.nn.Sequential(
             torch.nn.Linear(self.feature_channel_num, self.feature_channel_num // 2),
-            ac_dict[acti](inplace=True),
+            AC_DICT[acti](inplace=True),
             torch.nn.Dropout(0.5),
             torch.nn.Linear(self.feature_channel_num // 2, 1),
 
