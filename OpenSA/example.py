@@ -20,7 +20,7 @@
 import torch
 import torch.cuda
 import torch.nn as nn
-# import torch.nn.functional as F
+# import torch.nn.functional.py as F
 # import torch.optim as optim
 # from torch.utils.data import random_split
 from torch.autograd import Variable
@@ -66,7 +66,8 @@ def SpectralQuantitativeAnalysis(data, label, ProcessMethods,
     :param EPOCH: int, 数据集训练次数
     :param acti: string, 激活函数，提供 relu、lrelu
     :param cnn_depth:
-    :param loss: string, loss 函数，提供 MSE、L1、CrossEntropy、Poisson、KLDiv (not supported)
+    :param loss: string, loss 函数，提供 MSE、L1、CrossEntropy、Poisson、KLDiv (not supported)、SmoothL1Loss、Mean Loss、
+                        QuantileLoss
     :param optim: string, 优化器，提供 Adam、SGD、Adagrad、Adadelta、RMSprop、Adamax、LBFGS
     :return: Rmse: float, Rmse回归误差评估指标
              R2: float, 回归拟合,
