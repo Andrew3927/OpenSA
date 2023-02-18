@@ -34,7 +34,7 @@ NET_DICT = {
 }
 
 # 使用字典映射调用 loss函数
-loss_dict = {
+LOSS_DICT = {
     'MSE': nn.MSELoss(),
     'L1': nn.L1Loss(),
     'CrossEntropy': nn.CrossEntropyLoss(ignore_index=-100),
@@ -57,7 +57,7 @@ OPTIM_DICT = {
     'AdamW': partial(optim.AdamW, lr=0.001, betas=(0.9, 0.999), eps=1e-08, weight_decay=0.01,
                      amsgrad=False, maximize=False, foreach=None, capturable=False),
 
-    'SparseAdam': partial(optim.SparseAdam, lr=0.001, betas=(0.9, 0.999), eps=1e-08, maximize=False),
+#     'SparseAdam': partial(optim.SparseAdam, lr=0.001, betas=(0.9, 0.999), eps=1e-08, maximize=False),
 
     'Adamax': partial(optim.Adamax, lr=0.002, betas=(0.9, 0.999), eps=1e-08, weight_decay=0, foreach=None,
                       maximize=False),
@@ -72,9 +72,6 @@ OPTIM_DICT = {
                      foreach=None),
 
     'RAdam': partial(optim.RAdam, lr=0.001, betas=(0.9, 0.999), eps=1e-08, weight_decay=0, foreach=None),
-
-    'RMSprop': partial(optim.RMSprop, lr=0.01, alpha=0.99, eps=1e-08, weight_decay=0, momentum=0,
-                       centered=False, foreach=None, maximize=False, differentiable=False),
 
     'RMSprop': partial(optim.RMSprop, lr=0.01, alpha=0.99, eps=1e-08, weight_decay=0, momentum=0,
                        centered=False, foreach=None, maximize=False, differentiable=False),
@@ -102,7 +99,7 @@ def QuantitativeAnalysis(model, X_train, X_test, y_train, y_test, EPOCH, acti, c
         # 设置优化器函数
         optim_func = OPTIM_DICT[optim](params=network.parameters())
         # 设置 loss 函数
-        loss_func = loss_dict[loss]
+        loss_func = LOSS_DICT[loss]
         # 打印配置参数
         printConfiguration(EPOCH=EPOCH, acti_func=acti, cnn_depth=cnn_depth, loss=loss,
                            optim=optim)

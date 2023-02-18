@@ -122,5 +122,11 @@ if __name__ == '__main__':
         SpectralQuantitativeAnalysis(data=data2, label=label2,
                                      ProcessMethods="MMS", FslecetedMethods="None",
                                      SetSplitMethods="random",
-                                     model="CNN_vgg", EPOCH=3, acti='relu',
-                                     cnn_depth=5, loss='QuantileLoss', optim='SGD')
+                                     model="CNN_vgg", EPOCH=3, acti='Tanh',
+                                     cnn_depth=5, loss='MSE', optim='AdamW')
+# Tanh
+# Tanhshrink
+# GLU
+# Softmin
+# Softmax
+# LogSoftmax

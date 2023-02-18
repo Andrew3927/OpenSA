@@ -7,6 +7,7 @@ from collections.abc import Iterable
 import sys
 
 import programParameter.modelConfig as MODEL_CONFIG
+from functools import partial
 
 
 """
@@ -14,8 +15,49 @@ import programParameter.modelConfig as MODEL_CONFIG
 """
 AC_DICT = {
     MODEL_CONFIG.relu: nn.ReLU,
-    MODEL_CONFIG.lrelu: nn.LeakyReLU
+    MODEL_CONFIG.lrelu: nn.LeakyReLU,
+    MODEL_CONFIG.ELU: partial(nn.ELU, alpha=1.0, inplace=False),
+    MODEL_CONFIG.Hardshrink: partial(nn.Hardshrink, lambd=0.5),
+    MODEL_CONFIG.Hardsigmoid: partial(nn.Hardsigmoid, inplace=False),
+    MODEL_CONFIG.Hardtanh: partial(nn.Hardtanh, min_val=- 1.0, max_val=1.0, inplace=False, min_value=None, max_value=None),
+    MODEL_CONFIG.Hardswish: partial(nn.Hardswish, inplace=False),
+    MODEL_CONFIG.LeakyReLU: partial(nn.LeakyReLU, negative_slope=0.01, inplace=False),
+    MODEL_CONFIG.LogSigmoid: nn.LogSigmoid,
+    MODEL_CONFIG.PReLU: partial(nn.PReLU, num_parameters=1, init=0.25, device=None, dtype=None),
+    MODEL_CONFIG.ReLU: partial(nn.ReLU, inplace=False),
+    MODEL_CONFIG.ReLU6: partial(nn.ReLU6, inplace=False),
+    MODEL_CONFIG.RReLU: partial(nn.RReLU, lower=0.125, upper=0.3333333333333333, inplace=False),
+    MODEL_CONFIG.SELU: partial(nn.SELU, inplace=False),
+    MODEL_CONFIG.CELU: partial(nn.CELU, alpha=1.0, inplace=False),
+    MODEL_CONFIG.GELU: partial(nn.GELU, approximate='none'),
+    MODEL_CONFIG.Sigmoid: nn.Sigmoid,
+    MODEL_CONFIG.SiLU: partial(nn.SiLU, inplace=False),
+    MODEL_CONFIG.Mish: partial(nn.Mish, inplace=False),
+    MODEL_CONFIG.Softplus: partial(nn.Softplus, beta=1, threshold=20),
+    MODEL_CONFIG.Softshrink: partial(nn.Softshrink, lambd=0.5),
+    MODEL_CONFIG.Softsign: nn.Softsign,
+    MODEL_CONFIG.Tanh: nn.Tanh,
+    MODEL_CONFIG.Tanhshrink: nn.Tanhshrink,
+    MODEL_CONFIG.Threshold: partial(nn.Threshold, threshold=.5, value=0, inplace=False),
+#     MODEL_CONFIG.GLU: partial(nn.GLU, dim=-1),
+    MODEL_CONFIG.Softmin: partial(nn.Softmin, dim=1),
+    MODEL_CONFIG.Softmax: partial(nn.Softmax, dim=1),
+    MODEL_CONFIG.LogSoftmax: partial(nn.LogSoftmax, dim=1),
 }
+
+NOTINPLACE_LIST = [MODEL_CONFIG.PReLU, 
+                   MODEL_CONFIG.GELU, 
+                   MODEL_CONFIG.Sigmoid, 
+                   MODEL_CONFIG.Softplus, 
+                   MODEL_CONFIG.Softshrink, 
+                   MODEL_CONFIG.Softsign,
+                   MODEL_CONFIG.Tanh,
+                   MODEL_CONFIG.Tanhshrink,
+#                    MODEL_CONFIG.GLU,
+                   MODEL_CONFIG.Softmin,
+                   MODEL_CONFIG.Softmax,
+                   MODEL_CONFIG.LogSoftmax
+                  ]
 
 LINEAR_PARAMETER = [649, 5184, 5184, 5184, 5120, 5120, 5120, 5120, 4096, 4096]
 
@@ -29,7 +71,12 @@ class AlexNet(nn.Module):
         for i in range(1, cnn_depth):
             self.layers.append(nn.Conv1d(input_channel, output_channel, 3, padding=1))
             self.layers.append(nn.BatchNorm1d(num_features=output_channel))
-            self.layers.append(AC_DICT[acti_func](inplace=True))
+            if acti_func not in NOTINPLACE_LIST:
+                self.layers.append(AC_DICT[acti_func](inplace=True))
+            else:
+#                 if acti_func == MODEL_CONFIG.GLU:
+#                     self.layers.append(nn.ConstantPad1d((0, 2), 0)) # make the dimension to be even for GLU                
+                self.layers.append(AC_DICT[acti_func]())
             self.layers.append(nn.MaxPool1d(2, 2))
             input_channel = output_channel
             output_channel = output_channel * 2
@@ -46,7 +93,8 @@ class AlexNet(nn.Module):
             nn.Linear(1000, 500),
             nn.ReLU(inplace=True),
             nn.Dropout(0.5),
-            nn.Linear(500, 1), )
+            nn.Linear(500, 1),
+        )
 
     def forward(self, x):
         out = x
@@ -56,6 +104,8 @@ class AlexNet(nn.Module):
         # out = out.view(-1,self.output_channel)
         out = self.reg(out)
         return out
+
+
 
 
 class Inception(nn.Module):

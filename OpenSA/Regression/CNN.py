@@ -7,6 +7,7 @@
 import numpy as np
 import torch
 import torch.nn as nn
+from torch import optim
 from torch.autograd import Variable
 from torch.utils.data import Dataset
 import torchvision
@@ -19,6 +20,7 @@ from datetime import datetime
 from Evaluate.RgsEvaluate import ModelRgsevaluate, ModelRgsevaluatePro
 import matplotlib.pyplot as plt
 from Plot.plot import nirplot_eva_epoch, nirplot_eva_iterations
+
 
 LR = 0.001
 BATCH_SIZE = 16
@@ -151,8 +153,10 @@ def train(Net, X_train, X_test, y_train, y_test, EPOCH, loss_function, optim_fun
 
             optim_func.zero_grad()  # clear gradients for this training step
             loss_function.backward()  # backpropagation, compute gradients
-            optim_func.step()  # apply gradients
-
+            if isinstance(optim_func, optim.LBFGS):
+                optim_func.step(closure=lambda: loss_function) # To fix LBFGS step() requre 'closure' error
+            else:
+                optim_func.step()  # apply gradients
             pred = output.detach().cpu().numpy()
             y_true = labels.detach().cpu().numpy()
             trainIter_losses.append(loss_function.item())
