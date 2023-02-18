@@ -6,7 +6,7 @@ def CL_red_print(string):
     print("\033[1;31;40m" + string + "\033[0m")
 
 
-def __printConfiguration(EPOCH, acti_func, cnn_depth, loss, optim):
+def printConfiguration(EPOCH, acti_func, cnn_depth, loss, optim):
     print("Training configuration:  " + "EPOCH=" + str(EPOCH) + ", activation function=" +
           acti_func + ", cnn_depth=" + str(cnn_depth) + ", loss function=" + loss + ", optimizer=" +
           optim + "\n")

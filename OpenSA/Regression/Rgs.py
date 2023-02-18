@@ -15,6 +15,7 @@ import ray.tune as tune
 import multiprocessing
 from ColorCodePrint.color_print import *
 
+
 tradic_net_dict = {
     'Pls': Pls,
     'ANN': Anngression,
@@ -37,6 +38,7 @@ loss_dict = {
     'CrossEntropy': nn.CrossEntropyLoss(ignore_index=-100),
     'Poisson': nn.PoissonNLLLoss(log_input=True, full=False, eps=1e-08),
     # 'KLDiv': nn.KLDivLoss(reduction='batchmean'),
+
 }
 
 
@@ -70,7 +72,7 @@ def QuantitativeAnalysis(model, X_train, X_test, y_train, y_test, EPOCH, acti, c
         # 设置 loss 函数
         loss_func = loss_dict[loss]
         # 打印配置参数
-        __printConfiguration(EPOCH=EPOCH, acti_func=acti, cnn_depth=cnn_depth, loss=loss,
+        printConfiguration(EPOCH=EPOCH, acti_func=acti, cnn_depth=cnn_depth, loss=loss,
                              optim=optim)
         # 开始训练
         train(network, X_train, X_test, y_train, y_test, EPOCH, loss_func,
