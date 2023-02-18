@@ -85,7 +85,7 @@ if __name__ == '__main__':
     data2, label2 = LoadNirtest('Rgs')
 
     # 是否使用自动超参功能
-    IS_AUTOTUNE = True
+    IS_AUTOTUNE = False
     TRAINING_BATCH_SIZE = 16
     TESTING_BATCH_SIZE = 240
 
@@ -123,4 +123,4 @@ if __name__ == '__main__':
                                      ProcessMethods="MMS", FslecetedMethods="None",
                                      SetSplitMethods="random",
                                      model="CNN_vgg", EPOCH=3, acti='relu',
-                                     cnn_depth=5, loss='MSE', optim='SGD')
+                                     cnn_depth=5, loss='QuantileLoss', optim='SGD')
