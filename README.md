@@ -1,26 +1,27 @@
 # OpenSA
 Aiming at the common training datsets split, spectrum preprocessing, wavelength select and calibration models algorithm involved in the spectral analysis process, a complete algorithm library is established, which is named opensa (openspectrum analysis).
-# 系列文章目录
-<font size =4 color=Red>“光晰本质，谱见不同”，光谱作为物质的指纹，被广泛应用于成分分析中。伴随微型光谱仪/光谱成像仪的发展与普及，基于光谱的分析技术将不只停留于工业和实验室，即将走入生活，实现万物感知，见微知著。本系列文章致力于光谱分析技术的科普和应用。
+# Series Article Directory
+<font size=4 color=Red>"The essence of light is clear, the spectrum reveals differences." Spectroscopy, as the fingerprint of matter, is widely used in component analysis. With the development and popularization of miniaturized spectrometers/spectral imaging devices, analysis techniques based on spectroscopy will not only be confined to industry and laboratories, but will also enter daily life, enabling perception of all things and revealing the subtle. This series of articles is dedicated to popularizing and applying spectroscopic analysis technology.
 <hr style=" border:solid; width:100px; height:1px;" color=#000000 size=1">
 
 
 
 
-@[TOC](文章目录)
+@[TOC](Table of Content)
 
 </font>
 
 <hr style=" border:solid; width:100px; height:1px;" color=#000000 size=1">
 
-# 前言
-典型的光谱分析模型(以近红外光谱作为示意，可见光、中远红外、荧光、拉曼、高光谱等分析流程亦相似)建立流程如下所示，在建立过程中，需要使用算法对训练样本进行选择，然后使用预处理算法对光谱进行预处理，或对光谱的特征进行提取，再构建校正模型实现定量分析，最后针对不同测量仪器或环境，进行模型转移或传递。因此训练样本的选择、光谱的预处理、波长筛选、校正模型、模型传递以及上述算法的参数都影响着模型的应用效果。
+# Introduction
+Spectra, as the fingerprint of substances, are widely used in component analysis due to their ability to reveal the essence of light. With the development and popularization of miniature spectrometers/spectral imaging instruments, spectral analysis techniques are not limited to industrial and laboratory settings but are being introduced into daily life to achieve perception of all things and understand the subtleties. This series of articles aims to popularize and apply spectral analysis techniques.
+
+The typical spectral analysis model (using near-infrared spectroscopy as an example, the analysis process for visible light, mid-infrared, fluorescence, Raman, hyperspectral, and other spectra are similar) is established as follows: during the building process, algorithms are used to select training samples, preprocess spectra, or extract spectral features. A calibration model is then constructed to achieve quantitative analysis, followed by model transfer or transmission for different measuring instruments or environments. Therefore, the selection of training samples, spectral preprocessing, wavelength selection, calibration model, model transfer, and parameters of the algorithms all affect the application effect of the model.
 
 ![图 1近红外光谱建模及应用流程](https://img-blog.csdnimg.cn/e4038170fff643468cacfed4fb34ab04.png?x-oss-process=image/watermark,type_d3F5LXplbmhlaQ,shadow_50,text_Q1NETiBARWNob19Db2Rl,size_20,color_FFFFFF,t_70,g_se,x_16)
-针对光谱分析流程所涉及的常见的训练样本的划分、光谱的预处理、波长筛选、校正模型算法建立了完整的算法库，名为OpenSA(OpenSpectrumAnalysis)。整套算法库的架构如下所示。
+A complete algorithm library called OpenSA (Open Spectrum Analysis) has been developed to establish algorithms for the common sample division, spectral preprocessing, wavelength selection, and calibration model algorithms involved in the spectral analysis process. The architecture of the entire algorithm library is shown below.
 ![在这里插入图片描述](https://img-blog.csdnimg.cn/cf63e5d8980542bf824cb889d01f2e00.png?x-oss-process=image/watermark,type_d3F5LXplbmhlaQ,shadow_50,text_Q1NETiBARWNob19Db2Rl,size_20,color_FFFFFF,t_70,g_se,x_16)
-样本划分模块提供随机划分、SPXY划分、KS划分三种数据集划分方法，光谱预处理模块提供常见光谱预处理，波长筛选模块提供Spa、Cars、Lars、Uve、Pca等特征降维方法，分析模块由光谱相似度计算、聚类、分类(定性分析)、回归(定量分析)构建，光谱相似度子模块计算提供SAM、SID、MSSIM、MPSNR等相似计算方法，聚类子模块提供KMeans、FCM等聚类方法，分类子模块提供ANN、SVM、PLS_DA、RF等经典化学计量学方法，亦提供CNN、AE、Transformer等前沿深度学习方法，回归子模块提供ANN、SVR、PLS等经典化学计量学定量分析方法，亦提供CNN、AE、Transformer等前沿深度学习定量分析方法。模型评估模块提供常见的评价指标，用于模型评估。自动参数优化模块用于自动进行最佳的模型设置参数寻找，提供网格搜索、遗传算法、贝叶斯概率三种最优参数寻找方法。可视化模块提供全程的分析可视化，可为科研绘图，模型选择提供视觉信息。可通过几行代码快速实现完整的光谱分析及应用（注: 自动参数优化模块和可视化模块暂不开源，等毕业后再说)
-
+The sample division module provides three types of data set division methods: random division, SPXY division, and KS division. The spectral preprocessing module provides common spectral preprocessing methods. The wavelength selection module provides feature dimensionality reduction methods such as Spa, Cars, Lars, Uve, and Pca. The analysis module includes spectral similarity calculation, clustering, classification (qualitative analysis), and regression (quantitative analysis). The spectral similarity sub-module calculation provides similarity calculation methods such as SAM, SID, MSSIM, and MPSNR. The clustering sub-module provides clustering methods such as KMeans and FCM. The classification sub-module provides classic chemometrics methods such as ANN, SVM, PLS_DA, and RF, as well as cutting-edge deep learning methods such as CNN, AE, and Transformer. The regression sub-module provides classic chemometrics quantitative analysis methods such as ANN, SVR, and PLS, as well as cutting-edge deep learning quantitative analysis methods such as CNN, AE, and Transformer. The model evaluation module provides common evaluation indicators for model evaluation. The automatic parameter optimization module is used to automatically find the best model setting parameters, and provides three methods for finding the optimal parameters: grid search, genetic algorithm, and Bayesian probability. The visualization module provides full-process analysis visualization, which provides visual information for scientific research and model selection. The complete spectral analysis and application can be quickly implemented with just a few lines of code.
 
 <hr style=" border:solid; width:100px; height:1px;" color=#000000 size=1">
 
