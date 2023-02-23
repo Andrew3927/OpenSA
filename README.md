@@ -26,19 +26,23 @@ The sample division module provides three types of data set division methods: ra
 <hr style=" border:solid; width:100px; height:1px;" color=#000000 size=1">
 
 
-<font  size=5 color=bule >本篇针对OpenSA的光谱预处理模块进行代码开源和使用示意
-# 更新日志 20220521
-给OpenSA完善了一下
-1、在波长筛选算法中，加入了遗传算法GA
-2、在定量分析算法中，加入ELM，普通卷积神经网络
-以及复现了一区文章的网络DeepSpectra，和二区文章的网络1-D ALENET                                                                      
+<font  size=5 color=bule >This article focuses on the code open-source and usage demonstration of the OpenSA spectral preprocessing module.
+# Update log 20220521
+Improved OpenSA by:
 
-# 一、光谱数据读入
-提供两个开源数据作为实列，一个为公开定量分析数据集，一个为公开定性分析数据集，本章仅以公开定量分析数据集作为演示。
-##  1.1 光谱数据读入
+Adding genetic algorithm (GA) to the wavelength selection algorithm
+Adding ELM, regular convolutional neural network to the quantitative analysis algorithm
+Also, reproduced the network DeepSpectra in Zone 1 paper and the network 1-D ALENET in Zone 2 paper.                                                            
+
+# 1. Spectral data input
+Two open-source datasets are provided as examples, one for public quantitative analysis and one for public qualitative analysis. This chapter only uses the public quantitative analysis dataset for demonstration.
+
+
+##  1.1 Spectral data input
+                                                                         
 
 ```python
-# 分别使用一个回归、一个分类的公开数据集做为example
+# Using one regression and one classification public dataset as examples
 def LoadNirtest(type):
 
     if type == "Rgs":
@@ -64,18 +68,18 @@ def LoadNirtest(type):
     return data, label
 
 ```
-##  1.2 光谱可视化
+##  1.2 Spectral Visualization
 ```python
-    #载入原始数据并可视化
+    #Load the original data and visualize it
     data, label = LoadNirtest('Rgs')
     plotspc(data, "raw specturm")
 ```
-采用的开源光谱如图所示:
+The open source spectra used are shown in the figure below:
 ![原始光谱](https://img-blog.csdnimg.cn/04a9549619fd48198c9072c2d1acfd99.png?x-oss-process=image/watermark,type_d3F5LXplbmhlaQ,shadow_50,text_Q1NETiBARWNob19Db2Rl,size_20,color_FFFFFF,t_70,g_se,x_16)
 
-# 二、光谱预处理
-##  2.1 光谱预处理模块
-将常见的光谱进行了封装，使用者仅需要改变名字，即可选择对应的光谱分析，下面是光谱预处理模块的核心代码
+# 2. Spectral Preprocessing
+##  2.1 Spectral Preprocessing Module
+Common spectra have been encapsulated, and users only need to change the name to select the corresponding spectral analysis. The following is the core code of the spectral preprocessing module.
 ```python
 """
     -*- coding: utf-8 -*-
@@ -96,7 +100,7 @@ import pandas as pd
 import pywt
 
 
-# 最大最小值归一化
+# Max-min normalization
 def MMS(data):
     """
        :param data: raw spectrum data, shape (n_samples, n_features)
@@ -105,7 +109,7 @@ def MMS(data):
     return MinMaxScaler().fit_transform(data)
 
 
-# 标准化
+# Standardization
 def SS(data):
     """
         :param data: raw spectrum data, shape (n_samples, n_features)
@@ -114,7 +118,7 @@ def SS(data):
     return StandardScaler().fit_transform(data)
 
 
-# 均值中心化
+# Mean centering
 def CT(data):
     """
        :param data: raw spectrum data, shape (n_samples, n_features)
@@ -126,7 +130,7 @@ def CT(data):
     return data
 
 
-# 标准正态变换
+# Standard normal transformation
 def SNV(data):
     """
         :param data: raw spectrum data, shape (n_samples, n_features)
@@ -135,17 +139,17 @@ def SNV(data):
     m = data.shape[0]
     n = data.shape[1]
     print(m, n)  #
-    # 求标准差
-    data_std = np.std(data, axis=1)  # 每条光谱的标准差
-    # 求平均值
-    data_average = np.mean(data, axis=1)  # 每条光谱的平均值
-    # SNV计算
+    # Calculation of standard deviation
+    data_std = np.std(data, axis=1)  # Standard deviation of each spectrum
+    # Calculation of mean
+    data_average = np.mean(data, axis=1)  # Mean of each spectrum
+    # SNV calculation
     data_snv = [[((data[i][j] - data_average[i]) / data_std[i]) for j in range(n)] for i in range(m)]
     return  data_snv
 
 
 
-# 移动平均平滑
+# Moving average smoothing
 def MA(data, WSZ=11):
     """
        :param data: raw spectrum data, shape (n_samples, n_features)
@@ -154,7 +158,7 @@ def MA(data, WSZ=11):
     """
 
     for i in range(data.shape[0]):
-        out0 = np.convolve(data[i], np.ones(WSZ, dtype=int), 'valid') / WSZ # WSZ是窗口宽度，是奇数
+        out0 = np.convolve(data[i], np.ones(WSZ, dtype=int), 'valid') / WSZ # WSZ is the window width and it is odd
         r = np.arange(1, WSZ - 1, 2)
         start = np.cumsum(data[i, :WSZ - 1])[::2] / r
         stop = (np.cumsum(data[i, :-WSZ:-1])[::2] / r)[::-1]
@@ -162,7 +166,7 @@ def MA(data, WSZ=11):
     return data
 
 
-# Savitzky-Golay平滑滤波
+# Savitzky-Golay smoothing filter
 def SG(data, w=11, p=2):
     """
        :param data: raw spectrum data, shape (n_samples, n_features)
@@ -173,7 +177,7 @@ def SG(data, w=11, p=2):
     return signal.savgol_filter(data, w, p)
 
 
-# 一阶导数
+# First-order derivative
 def D1(data):
     """
        :param data: raw spectrum data, shape (n_samples, n_features)
@@ -186,7 +190,7 @@ def D1(data):
     return Di
 
 
-# 二阶导数
+# Second-order derivative
 def D2(data):
     """
        :param data: raw spectrum data, shape (n_samples, n_features)
@@ -202,7 +206,7 @@ def D2(data):
     return spec_D2
 
 
-# 趋势校正(DT)
+# Trend correction (DT)
 def DT(data):
     """
        :param data: raw spectrum data, shape (n_samples, n_features)
@@ -222,7 +226,7 @@ def DT(data):
     return out
 
 
-# 多元散射校正
+# Multivariate scatter correction
 def MSC(data):
     """
        :param data: raw spectrum data, shape (n_samples, n_features)
@@ -234,7 +238,7 @@ def MSC(data):
     for j in range(n):
         mean = np.mean(data, axis=0)
 
-    # 线性拟合
+    # Linear fitting
     for i in range(n):
         y = data[i, :]
         l = LinearRegression()
@@ -244,7 +248,7 @@ def MSC(data):
         msc[i, :] = (y - b) / k
     return msc
 
-# 小波变换
+# Wavelet transformation
 def wave(data):
     """
        :param data: raw spectrum data, shape (n_samples, n_features)
@@ -254,7 +258,7 @@ def wave(data):
     if isinstance(data, pd.DataFrame):
         data = data.values
     def wave_(data):
-        w = pywt.Wavelet('db8')  # 选用Daubechies8小波
+        w = pywt.Wavelet('db8')  # Daubechies8 wavelet is selected
         maxlev = pywt.dwt_max_level(len(data), w.dec_len)
         coeffs = pywt.wavedec(data, 'db8', level=maxlev)
         threshold = 0.04
@@ -305,35 +309,34 @@ def Preprocessing(method, data):
 
 
 ```
-## 2 .2 光谱预处理的使用
-在example.py文件中，提供了光谱预处理模块的使用方法，具体如下，仅需要两行代码即可实现所有常见的光谱预处理。
-示意1：利用OpenSA实现MSC多元散射校正
+## 2.2 Use of Spectral Preprocessing
+In the example.py file, the usage of the spectral preprocessing module is provided, as shown below. Only two lines of code are required to implement all common spectral preprocessing.
+Example 1: Implement MSC multivariate scatter correction using OpenSA
 ```python
- #载入原始数据并可视化
+ #Load the original data and visualize it
     data, label = LoadNirtest('Rgs')
     plotspc(data, "raw specturm")
-    #光谱预处理并可视化
+    #Spectral preprocessing and visualization
     method = "MSC"
     Preprocessingdata = Preprocessing(method, data)
     plotspc(Preprocessingdata, method)
 ```
-预处理后的光谱数据如图所示:
+The preprocessed spectral data is shown in the figure below:
 ![在这里插入图片描述](https://img-blog.csdnimg.cn/3b38f01e6ebe4a22821274bca50aa5a2.png?x-oss-process=image/watermark,type_d3F5LXplbmhlaQ,shadow_50,text_Q1NETiBARWNob19Db2Rl,size_20,color_FFFFFF,t_70,g_se,x_16)
 
 
-示意2：利用OpenSA实现SNV预处理
+Example 2: Implement SNV preprocessing using OpenSA
 
 ```python
-    #载入原始数据并可视化
+    #Load the original data and visualize it
     data, label = LoadNirtest('Rgs')
     plotspc(data, "raw specturm")
-    #光谱预处理并可视化
+    #Spectral preprocessing and visualization
     method = "SNV"
     Preprocessingdata = Preprocessing(method, data)
     plotspc(Preprocessingdata, method)
 ```
-预处理后的光谱数据如图所示:
+The preprocessed spectral data is shown in the figure below:
 ![SNV](https://img-blog.csdnimg.cn/558d1c710da04519b72cab08da67e9cc.png?x-oss-process=image/watermark,type_d3F5LXplbmhlaQ,shadow_50,text_Q1NETiBARWNob19Db2Rl,size_20,color_FFFFFF,t_70,g_se,x_16)
-# 总结
-<font color=#999AAA >利用OpenSA可以非常简单的实现对光谱的预处理，完整代码可从获得[GitHub仓库](https://github.com/FuSiry/OpenSA) 如果对您有用，请点赞！
-代码现仅供学术使用，若对您的学术研究有帮助，请引用本人的论文，同时，未经许可不得用于商业化应用，欢迎大家继续补充OpenSA中所涉及到的算法
+# Conclusion
+<font color=#999AAA >OpenSA can be used to easily implement spectral preprocessing. The complete code can be obtained from the GitHub repository. If it is useful to you, please give it a like! The code is currently only for academic use. If it is helpful for your academic research, please cite my paper. Unauthorized use for commercial applications is prohibited. You are welcome to continue supplementing the algorithms involved in OpenSA.
